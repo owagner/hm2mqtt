@@ -24,5 +24,6 @@ public class Main
 			System.setProperty("hm2mqtt."+sp[0],sp[1]);
 		}
 		MQTTHandler.init();
+		HM.init();
 	}
 }

@@ -30,7 +30,7 @@ public class MQTTHandler
 
 	private static MQTTHandler instance;
 
-	private MqttAsyncClient mqttc;
+	private MqttClient mqttc;
 
 	private void queueConnect()
 	{
@@ -84,53 +84,18 @@ public class MQTTHandler
 		MqttConnectOptions copts=new MqttConnectOptions();
 		try
 		{
-			mqttc.connect(copts,null,new IMqttActionListener(){
-				@Override
-				public void onFailure(IMqttToken tok, Throwable t)
-				{
-					L.log(Level.WARNING,"Error while connecting to MQTT broker, will retry: "+t.getMessage(),t);
-					queueConnect();
-				}
-				@Override
-				public void onSuccess(IMqttToken tok)
-				{
-					L.info("Successfully connected to broker, subscribing to "+topicPrefix+"#");
-					try
-					{
-						mqttc.setCallback(new MqttCallback() {
-							@Override
-							public void messageArrived(String topic, MqttMessage msg) throws Exception
-							{
-								try
-								{
-									processMessage(topic,msg);
-								}
-								catch(Exception e)
-								{
-									L.log(Level.WARNING,"Error when processing message "+msg+" for "+topic,e);
-								}
-							}
-							@Override
-							public void deliveryComplete(IMqttDeliveryToken token)
-							{
-								/* Intentionally ignored */
-							}
-							@Override
-							public void connectionLost(Throwable t)
-							{
-								L.log(Level.WARNING,"Connection to MQTT broker lost",t);
-								queueConnect();
-							}
-						});
-						mqttc.subscribe(topicPrefix+"#",1);
-						shouldBeConnected=true;
-					}
-					catch(MqttException mqe)
-					{
-						L.log(Level.WARNING,"Error subscribing to topic hierarchy, check your configuration",mqe);
-					}
-				}
-			});
+			mqttc.connect(copts);
+			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"#");
+			try
+			{
+				mqttc.subscribe(topicPrefix+"#",1);
+				shouldBeConnected=true;
+			}
+			catch(MqttException mqe)
+			{
+				L.log(Level.WARNING,"Error subscribing to topic hierarchy, check your configuration",mqe);
+				throw mqe;
+			}
 		}
 		catch(MqttException mqe)
 		{
@@ -143,17 +108,42 @@ public class MQTTHandler
 	{
 		String server=System.getProperty("hm2mqtt.mqtt.server","tcp://localhost:1833");
 		String clientID=System.getProperty("hm2mqtt.mqtt.clientid","hm2mqtt");
-		mqttc=new MqttAsyncClient(server,clientID,new MemoryPersistence());
+		mqttc=new MqttClient(server,clientID,new MemoryPersistence());
+		mqttc.setCallback(new MqttCallback() {
+			@Override
+			public void messageArrived(String topic, MqttMessage msg) throws Exception
+			{
+				try
+				{
+					processMessage(topic,msg);
+				}
+				catch(Exception e)
+				{
+					L.log(Level.WARNING,"Error when processing message "+msg+" for "+topic,e);
+				}
+			}
+			@Override
+			public void deliveryComplete(IMqttDeliveryToken token)
+			{
+				/* Intentionally ignored */
+			}
+			@Override
+			public void connectionLost(Throwable t)
+			{
+				L.log(Level.WARNING,"Connection to MQTT broker lost",t);
+				queueConnect();
+			}
+		});
 		doConnect();
 		Main.t.schedule(new StateChecker(),30*1000,30*1000);
 	}
 
-	private void doPublish(String name, String val, String src)
+	private void doPublish(String name, String val, String addr,boolean retain)
 	{
-		String txtmsg=new JsonObject().add("val",val).add("src",src).add("ack",true).toString();
+		String txtmsg=new JsonObject().add("val",val).add("addr",addr).add("ack",true).toString();
 		MqttMessage msg=new MqttMessage(txtmsg.getBytes(Charset.forName("UTF-8")));
 		// Default QoS is 1, which is what we want
-		msg.setRetained(true);
+		msg.setRetained(retain);
 		try
 		{
 			mqttc.publish(topicPrefix+name, msg);
@@ -165,9 +155,9 @@ public class MQTTHandler
 		}
 	}
 
-	public static void publish(String name, String val, String src)
+	public static void publish(String name, String val, String src,boolean retain)
 	{
-		instance.doPublish(name,val,src);
+		instance.doPublish(name,val,src,retain);
 	}
 
 }

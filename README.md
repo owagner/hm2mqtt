@@ -19,6 +19,11 @@ Prerequisites
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
 
 
+Device names
+------------
+hm2mqtt will try to read device and channel names from the specified HM hosts using the ReGa TCL interface
+on port 8181. If this succeeds, channel names will be resolved into symbolic names before publishing.
+
 
 MQTT Message format
 --------------------
@@ -26,6 +31,7 @@ MQTT Message format
 The message format accepted and generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
+* addr - 
 * ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
   are ignored, to avoid loops.
  
@@ -55,8 +61,17 @@ Examples:
 
   The topic prefix used for publishing and subscribing. Defaults to "hm/".
 
+- hm.host
+
+  List of host:port addresses where XML-RPC services are to be connected. If no port is specified,
+  the default ports of 2000 and 2001 will be used (rfd and hm485d on a CCU, respectivly)
   
   
+See also
+--------
+- knm2mqtt - similiar tool for KNX integration 
+- hmcompanion - where most of the HM-side code was taken from
+
 Changelog
 ---------
 (work in progress)
