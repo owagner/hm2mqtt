@@ -14,10 +14,10 @@ public class HMXRConnection extends Thread
 	private final Logger L=Logger.getLogger(getClass().getName());
 
 	Socket s;
-	String host;
-	int port;
-	String serverurl;
-	int instance;
+	final String host;
+	final int port;
+	final String serverurl;
+	final int instance;
 
 	public HMXRConnection(String host,int port,String serverurl,int instance)
 	{
@@ -97,4 +97,5 @@ public class HMXRConnection extends Thread
 	{
 		return sendRequest(m,true);
 	}
+
 }

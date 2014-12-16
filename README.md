@@ -35,7 +35,7 @@ The message format accepted and generated is a JSON encoded object with the foll
 * ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
   are ignored, to avoid loops.
  
-
+PRESS\_SHORT and PRESS\_LONG items are sent with the retain flag set to _false_, all others with retain set to _true_.
 
 Usage
 -----
@@ -65,6 +65,11 @@ Examples:
 
   List of host:port addresses where XML-RPC services are to be connected. If no port is specified,
   the default ports of 2000 and 2001 will be used (rfd and hm485d on a CCU, respectivly)
+
+- hm.idleTimeout
+
+  When no XML-RPC request has been received for the specified amount of seconds, another XML-RPC init
+  request will be sent to all services. Defaults to 300s.
   
   
 See also

@@ -74,7 +74,14 @@ public class MQTTHandler
 			return;
 		}
 		L.info("Received "+msg+" to "+topic);
+		topic=topic.substring(topicPrefix.length(),topic.length());
 
+		int slashIx=topic.lastIndexOf('/');
+		if(slashIx>=0)
+		{
+			String datapoint=topic.substring(slashIx+1,topic.length());
+			String address=topic.substring(0,slashIx);
+		}
 	}
 
 	private void doConnect()

@@ -20,6 +20,12 @@ public class HM
 		}
 	}
 
+	private void sendInits()
+	{
+		for(HMXRConnection c:connections)
+			c.sendInit();
+	}
+
 	private void doInit() throws IOException
 	{
 		String serverurl=XMLRPCServer.init();
@@ -47,8 +53,18 @@ public class HM
 			TCLRegaHandler.setHMHost(rega);
 			ReGaDeviceCache.loadDeviceCache();
 		}
-		for(HMXRConnection c:connections)
-			c.sendInit();
+
+		sendInits();
+
+		// Start a watchdog
+		Main.t.schedule(new TimerTask(){
+			@Override
+			public void run()
+			{
+				if(XMLRPCServer.isIdle())
+					sendInits();
+			}
+		}, 30*1000,60*1000);
 	}
 
 	private void addConnection(String host,int port,String serverurl)

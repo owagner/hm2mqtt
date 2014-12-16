@@ -3,11 +3,12 @@ package com.tellerulam.hm2mqtt;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.*;
 
-public class XMLRPCServer extends Thread
+public class XMLRPCServer implements Runnable
 {
-	private final Logger L=Logger.getLogger(getClass().getName());
+	private static final Logger L=Logger.getLogger(XMLRPCServer.class.getName());
 
 	private static ServerSocket ss;
 	public static String init() throws IOException
@@ -20,10 +21,17 @@ public class XMLRPCServer extends Thread
         return "binary://"+System.getProperty("hm2mqtt.hm.localhost",addr.getHostAddress())+":"+ss.getLocalPort();
 	}
 
-	static long lastRequest;
+	static private long lastRequest;
+
+	static final ExecutorService xmlExecutor=Executors.newCachedThreadPool();
 
 	static final class XMLRPCAcceptor extends Thread
 	{
+		XMLRPCAcceptor()
+		{
+			super("XML-RPC HTTP Request Acceptor");
+		}
+
 		@Override
 		public void run()
 		{
@@ -33,7 +41,7 @@ public class XMLRPCServer extends Thread
 				{
 					Socket s=ss.accept();
 					s.setKeepAlive(true);
-					new XMLRPCServer(s).start();
+					xmlExecutor.submit(new XMLRPCServer(s));
 				}
 			}
 			catch(Exception e)
@@ -64,11 +72,10 @@ public class XMLRPCServer extends Thread
 			return l;
 	}
 
-	Socket s;
+	final Socket s;
 	OutputStream os;
 	XMLRPCServer(Socket s)
 	{
-		super("Handler for "+s);
 		this.s=s;
 	}
 
@@ -205,5 +212,17 @@ public class XMLRPCServer extends Thread
 				// We don't care here
 			}
 		}
+	}
+
+	private static final int hmIdleTimeout=Integer.getInteger("hm2mqtt.hm.idleTimeout",300).intValue();
+
+	public static boolean isIdle()
+	{
+		if(System.currentTimeMillis() - lastRequest > hmIdleTimeout*1000)
+		{
+			L.info("Not seen a XML-RPC request for over "+hmIdleTimeout+"s, re-initing...");
+			return true;
+		}
+		return false;
 	}
 }
