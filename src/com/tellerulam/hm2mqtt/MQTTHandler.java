@@ -81,6 +81,20 @@ public class MQTTHandler
 		{
 			String datapoint=topic.substring(slashIx+1,topic.length());
 			String address=topic.substring(0,slashIx);
+			String value=data.get("val").asString();
+
+			Collection<ReGaItem> devs=ReGaDeviceCache.getItemsByName(address);
+			if(devs!=null)
+			{
+				for(ReGaItem rit:devs)
+					HM.setValue(rit.address,datapoint,value);
+
+			}
+			else
+			{
+				// Assume it's an actual address
+				HM.setValue(address,datapoint,value);
+			}
 		}
 	}
 
@@ -147,7 +161,7 @@ public class MQTTHandler
 
 	private void doPublish(String name, String val, String addr,boolean retain)
 	{
-		String txtmsg=new JsonObject().add("val",val).add("addr",addr).add("ack",true).toString();
+		String txtmsg=new JsonObject().add("val",val).add("hm_addr",addr).add("ack",true).toString();
 		MqttMessage msg=new MqttMessage(txtmsg.getBytes(Charset.forName("UTF-8")));
 		// Default QoS is 1, which is what we want
 		msg.setRetained(retain);

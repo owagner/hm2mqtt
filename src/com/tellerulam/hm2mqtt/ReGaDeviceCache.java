@@ -51,7 +51,8 @@ public class ReGaDeviceCache
 	static private void putRegaItem(String id,String address,String interf,String name)
 	{
 		ReGaItem r=new ReGaItem(Integer.parseInt(id),name,address,interf);
-		itemsByName.put(name,r);
+		if(!itemsByName.containsKey(name))
+			itemsByName.put(name,r);
 		itemsByAddress.put(address,r);
 	}
 
@@ -77,13 +78,11 @@ public class ReGaDeviceCache
 			"  }"
 		);
 		if(r==null)
-		{
-			// Request failed, refuse to run
-			System.exit(1);
-		}
+			return;
 		String lines[]=r.split("\n");
 		for(String l:lines)
 		{
+			System.out.println(l);
 			String p[]=l.split("\t");
 			if(p.length==4)
 				putRegaItem(p[0],p[1],p[2],p[3]);

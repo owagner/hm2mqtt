@@ -31,11 +31,11 @@ MQTT Message format
 The message format accepted and generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
-* addr - 
 * ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
   are ignored, to avoid loops.
+* hm_addr - source HM device address and channel number
  
-PRESS\_SHORT and PRESS\_LONG items are sent with the retain flag set to _false_, all others with retain set to _true_.
+PRESS\_SHORT and PRESS\_LONG items are sent with the MQTT retain flag set to _false_, all others with retain set to _true_.
 
 Usage
 -----

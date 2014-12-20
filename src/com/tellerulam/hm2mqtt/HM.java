@@ -1,6 +1,7 @@
 package com.tellerulam.hm2mqtt;
 
 import java.io.*;
+import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -22,8 +23,32 @@ public class HM
 
 	private void sendInits()
 	{
-		for(HMXRConnection c:connections)
+		for(HMXRConnection c:connections.values())
 			c.sendInit();
+	}
+
+	static String dispatchEvent(List<?> parms)
+	{
+		String cbid=parms.get(0).toString();
+		HMXRConnection c=instance.connections.get(cbid);
+		if(c==null)
+		{
+			instance.L.warning("Received event with unknown callback ID "+parms);
+			return null;
+		}
+		return c.handleEvent(parms);
+	}
+
+	public static void dispatchNewDevices(List<?> parms)
+	{
+		String cbid=parms.get(0).toString();
+		HMXRConnection c=instance.connections.get(cbid);
+		if(c==null)
+		{
+			instance.L.warning("Received event with unknown callback ID "+parms);
+			return;
+		}
+		c.handleNewDevices(parms);
 	}
 
 	private void doInit() throws IOException
@@ -71,14 +96,40 @@ public class HM
 	{
 		int ix=connections.size();
 		HMXRConnection c=new HMXRConnection(host, port, serverurl, ix);
-		connections.add(c);
+		connections.put("CB"+ix,c);
 		L.info("Adding connection to XML-RPC service at "+host+":"+port);
+		ix++;
 	}
 
-	final private List<HMXRConnection> connections=new ArrayList<>();
+	final private Map<String,HMXRConnection> connections=new HashMap<>();
 
 	private static HM instance;
 
 	private final Logger L=Logger.getLogger(getClass().getName());
+
+	public static void setValue(String address, String datapoint, String value)
+	{
+		String devAddress=HMXRConnection.channelIDtoAddress(address);
+		for(HMXRConnection c:instance.connections.values())
+		{
+			if(c.handlesDevice(devAddress))
+			{
+				HMXRMsg m=new HMXRMsg("setValue");
+				m.addArg(address);
+				m.addArg(datapoint);
+				m.addArg(value);
+				try
+				{
+					c.sendRequest(m);
+					return;
+				}
+				catch(IOException | ParseException e)
+				{
+					instance.L.log(Level.WARNING,"Error when setting value on "+address,e);
+				}
+			}
+		}
+		instance.L.warning("Unable to find a HM connection for address "+address);
+	}
 
 }

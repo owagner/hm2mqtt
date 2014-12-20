@@ -79,40 +79,9 @@ public class XMLRPCServer implements Runnable
 		this.s=s;
 	}
 
-	private String handleEvent(List<?> parms)
+	private void handleNewDevices(HMXRResponse r)
 	{
-		String address=parms.get(1).toString();
-		String item=parms.get(2).toString();
-		Object val=parms.get(3);
-
-		L.info("Got CB "+address+" "+item+" "+val);
-
-		String topic;
-
-		ReGaItem rit=ReGaDeviceCache.getItemByName(address);
-		if(rit==null)
-		{
-			L.warning("Unable to resolve HM address "+address+" to a ReGa name");
-			topic=address;
-		}
-		else
-			topic=rit.name;
-
-		// Convert booleans to numeric
-		if(val instanceof Boolean)
-		{
-			Boolean b=(Boolean)val;
-			if(b.booleanValue())
-				val=Integer.valueOf(1);
-			else
-				val=Integer.valueOf(0);
-		}
-
-		boolean retain=!item.startsWith("PRESS_");
-
-		MQTTHandler.publish(topic+"/"+item, val.toString(), address, retain);
-
-		return parms.get(0).toString();
+		HM.dispatchNewDevices(r.rd);
 	}
 
 	private void handleMethodCall(HMXRResponse r) throws IOException
@@ -120,17 +89,18 @@ public class XMLRPCServer implements Runnable
 		lastRequest=System.currentTimeMillis();
 		if("event".equals(r.methodName))
 		{
-			String cb=handleEvent(r.rd);
+			String cb=HM.dispatchEvent(r.rd);
 			incMsg(cb);
 			os.write(bEmptyString);
 		}
 		else if("listDevices".equals(r.methodName))
 		{
+			// Pretend we don't know any devices yet
 			os.write(bEmptyArray);
 		}
 		else if("newDevices".equals(r.methodName))
 		{
-			// Hm we ignore that
+			handleNewDevices(r);
 			os.write(bEmptyArray);
 		}
 		else if("system.listMethods".equals(r.methodName))
@@ -155,7 +125,7 @@ public class XMLRPCServer implements Runnable
 				String method=call.get("methodName").toString();
 				if("event".equals(method))
 				{
-					cb=handleEvent((List<?>)call.get("params"));
+					cb=HM.dispatchEvent((List<?>)call.get("params"));
 				}
 				else
 					L.warning("Unknown method in multicall called by XML-RPC service: "+method);

@@ -7,6 +7,7 @@ package com.tellerulam.hm2mqtt;
 import java.io.IOException;
 import java.net.*;
 import java.text.ParseException;
+import java.util.*;
 import java.util.logging.*;
 
 public class HMXRConnection extends Thread
@@ -26,6 +27,8 @@ public class HMXRConnection extends Thread
 		this.serverurl=serverurl;
 		this.instance=instance;
 	}
+
+	private final Set<String> assignedAddresses=new HashSet<>();
 
 	// Deinit on shutdown
 	private class Deiniter extends Thread
@@ -96,6 +99,77 @@ public class HMXRConnection extends Thread
 	public HMXRResponse sendRequest(HMXRMsg m) throws IOException, ParseException
 	{
 		return sendRequest(m,true);
+	}
+
+	static public String channelIDtoAddress(String chid)
+	{
+		int six=chid.indexOf(':');
+		if(six>=0)
+			return chid.substring(0,six);
+		return chid;
+	}
+
+	public boolean handlesDevice(String devAddress)
+	{
+		synchronized(assignedAddresses)
+		{
+			return assignedAddresses.contains(devAddress);
+		}
+	}
+
+	String handleEvent(List<?> parms)
+	{
+		String address=parms.get(1).toString();
+		String item=parms.get(2).toString();
+		Object val=parms.get(3);
+
+		synchronized(assignedAddresses)
+		{
+			assignedAddresses.add(channelIDtoAddress(address));
+		}
+
+		L.info("Got CB "+address+" "+item+" "+val);
+
+		String topic;
+
+		ReGaItem rit=ReGaDeviceCache.getItemByName(address);
+		if(rit==null)
+		{
+			L.warning("Unable to resolve HM address "+address+" to a ReGa name");
+			topic=address;
+		}
+		else
+			topic=rit.name;
+
+		// Convert booleans to numeric
+		if(val instanceof Boolean)
+		{
+			Boolean b=(Boolean)val;
+			if(b.booleanValue())
+				val=Integer.valueOf(1);
+			else
+				val=Integer.valueOf(0);
+		}
+
+		boolean retain=!item.startsWith("PRESS_");
+
+		MQTTHandler.publish(topic+"/"+item, val.toString(), address, retain);
+
+		return parms.get(0).toString();
+	}
+
+
+	public void handleNewDevices(List<?> parms)
+	{
+		@SuppressWarnings("unchecked")
+		List<Map<String,String>> items=(List<Map<String, String>>)parms.get(1);
+		for(Map<String,String> dev:items)
+		{
+			synchronized(assignedAddresses)
+			{
+				assignedAddresses.add(channelIDtoAddress(dev.get("ADDRESS")));
+			}
+		}
 	}
 
 }
