@@ -23,20 +23,18 @@ Prerequisites
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
 
 
-Device names
-------------
+Device names and topic structure
+--------------------------------
 hm2mqtt will try to read device and channel names from the specified HM hosts using the ReGa TCL interface
 on port 8181. If this succeeds, channel names will be resolved into symbolic names before publishing.
 
-
-Topic structure
----------------
 The topics generated and accepted are of the form
 
 `prefix/channel/datapoint`
 
-The *channel* is either the raw address or a name resolved by querying a possibly running ReGaHSS instance
-on a CCU1 or CCU2.
+The *channel* is either the raw address or a name resolved by querying the ReGa.
+
+Note that incoming messages are accepted on both the symbolic and the address channel name.
 
 A special topic is *prefix/connected*. It holds a boolean value which denotes whether the adapter is
 currently running. It's set to false on disconnect using a MQTT will.
@@ -93,7 +91,7 @@ Examples:
   
 See also
 --------
-- knm2mqtt - similiar tool for KNX integration 
+- knx2mqtt - similiar tool for KNX integration 
 - hmcompanion - where most of the HM-side code originates from
 
 
