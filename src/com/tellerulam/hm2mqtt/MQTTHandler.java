@@ -81,7 +81,7 @@ public class MQTTHandler
 		{
 			String datapoint=topic.substring(slashIx+1,topic.length());
 			String address=topic.substring(0,slashIx);
-			String value=data.get("val").asString();
+			String value=data.get("val").toString();
 
 			Collection<ReGaItem> devs=ReGaDeviceCache.getItemsByName(address);
 			if(devs!=null)
