@@ -97,7 +97,7 @@ public class HM
 		int ix=connections.size();
 		HMXRConnection c=new HMXRConnection(host, port, serverurl, ix);
 		connections.put("CB"+ix,c);
-		L.info("Adding connection to XML-RPC service at "+host+":"+port);
+		L.info("Adding connection "+ix+" to XML-RPC service at "+host+":"+port);
 		ix++;
 	}
 
@@ -117,6 +117,7 @@ public class HM
 				HMXRMsg m=new HMXRMsg("setValue");
 				m.addArg(address);
 				m.addArg(datapoint);
+				// Strangely, if we send everything as string, rfd/hs485d will do conversion for us.
 				m.addArg(value);
 				try
 				{

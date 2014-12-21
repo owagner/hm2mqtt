@@ -26,6 +26,9 @@ public class HMXRConnection extends Thread
 		this.port=port;
 		this.serverurl=serverurl;
 		this.instance=instance;
+
+		// Queue a deinit on shutdown
+		Runtime.getRuntime().addShutdownHook(new Deiniter());
 	}
 
 	private final Set<String> assignedAddresses=new HashSet<>();
@@ -62,10 +65,8 @@ public class HMXRConnection extends Thread
 		}
 		catch(Exception e)
 		{
-			/* Ignore */
+			L.log(Level.WARNING,"Init to "+host+":"+port+" with "+serverurl+" failed",e);
 		}
-		// Queue a deinit on shutdown
-		Runtime.getRuntime().addShutdownHook(new Deiniter());
 	}
 
 
@@ -79,10 +80,22 @@ public class HMXRConnection extends Thread
 			s.getOutputStream().write(m.prepareData());
 			return HMXRResponse.readMsg(s,false);
 		}
-		catch(IOException ioe)
+		catch(Exception ioe)
 		{
+			// In any case, close the socket, so it's reopened upon retry
+			try
+			{
+				s.close();
+			}
+			catch(Exception e)
+			{
+				/* Ignore anything that happened during closing, we don't care */
+			}
+			s=null;
+
 			if(!retry)
 				throw ioe; // Just rethrow
+
 			L.log(Level.WARNING,"Error during transaction handling",ioe);
 			try
 			{
@@ -92,7 +105,6 @@ public class HMXRConnection extends Thread
 			{
 				/* Ignore */
 			}
-			s=null;
 			return sendRequest(m,true);
 		}
 	}
@@ -128,7 +140,7 @@ public class HMXRConnection extends Thread
 			assignedAddresses.add(channelIDtoAddress(address));
 		}
 
-		L.info("Got CB "+address+" "+item+" "+val);
+		L.finest("Got CB "+address+" "+item+" "+val);
 
 		String topic;
 

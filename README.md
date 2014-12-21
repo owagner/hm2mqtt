@@ -1,6 +1,10 @@
 hm2mqtt
 =======
 
+  Written and (C) 2014 Oliver Wagner <owagner@tellerulam.com> 
+  
+  Provided under the terms of the MIT license.
+
 Overview
 --------
 
@@ -25,6 +29,19 @@ hm2mqtt will try to read device and channel names from the specified HM hosts us
 on port 8181. If this succeeds, channel names will be resolved into symbolic names before publishing.
 
 
+Topic structure
+---------------
+The topics generated and accepted are of the form
+
+`prefix/channel/datapoint`
+
+The *channel* is either the raw address or a name resolved by querying a possibly running ReGaHSS instance
+on a CCU1 or CCU2.
+
+A special topic is *prefix/connected*. It holds a boolean value which denotes whether the adapter is
+currently running. It's set to false on disconnect using a MQTT will.
+
+
 MQTT Message format
 --------------------
 
@@ -35,7 +52,9 @@ The message format accepted and generated is a JSON encoded object with the foll
   are ignored, to avoid loops.
 * hm_addr - source HM device address and channel number
  
-PRESS\_SHORT and PRESS\_LONG items are sent with the MQTT retain flag set to _false_, all others with retain set to _true_.
+Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) are sent with the MQTT retain 
+flag set to _false_, all others with retain set to _true_.
+
 
 Usage
 -----
@@ -75,7 +94,8 @@ Examples:
 See also
 --------
 - knm2mqtt - similiar tool for KNX integration 
-- hmcompanion - where most of the HM-side code was taken from
+- hmcompanion - where most of the HM-side code originates from
+
 
 Changelog
 ---------

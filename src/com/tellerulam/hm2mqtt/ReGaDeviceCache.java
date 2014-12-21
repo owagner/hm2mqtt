@@ -82,7 +82,6 @@ public class ReGaDeviceCache
 		String lines[]=r.split("\n");
 		for(String l:lines)
 		{
-			System.out.println(l);
 			String p[]=l.split("\t");
 			if(p.length==4)
 				putRegaItem(p[0],p[1],p[2],p[3]);
@@ -90,5 +89,5 @@ public class ReGaDeviceCache
 		L.info("Obtained "+itemsByName.size()+" ReGa Channel and Device items");
 	}
 
-	private static final Logger L=Logger.getLogger(TCLRegaHandler.class.getName());
+	private static final Logger L=Logger.getLogger(ReGaDeviceCache.class.getName());
 }

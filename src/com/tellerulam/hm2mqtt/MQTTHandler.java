@@ -19,6 +19,8 @@ public class MQTTHandler
 		instance.doInit();
 	}
 
+	private static MQTTHandler instance;
+
 	private final String topicPrefix;
 	private MQTTHandler()
 	{
@@ -27,8 +29,6 @@ public class MQTTHandler
 			tp+="/";
 		topicPrefix=tp;
 	}
-
-	private static MQTTHandler instance;
 
 	private MqttClient mqttc;
 
@@ -63,14 +63,14 @@ public class MQTTHandler
 	{
 		if(msg.isRetained())
 		{
-			L.info("Ignoring retained message "+msg+" to "+topic);
+			L.fine("Ignoring retained message "+msg+" to "+topic);
 			return;
 		}
 		JsonObject data=JsonObject.readFrom(new String(msg.getPayload(),Charset.forName("UTF-8")));
 		JsonValue ack=data.get("ack");
 		if(ack!=null && ack.asBoolean())
 		{
-			L.info("Ignoring ack'ed message "+msg+" to "+topic);
+			L.fine("Ignoring ack'ed message "+msg+" to "+topic);
 			return;
 		}
 		L.info("Received "+msg+" to "+topic);
@@ -103,9 +103,12 @@ public class MQTTHandler
 		L.info("Connecting to MQTT broker "+mqttc.getServerURI()+" with CLIENTID="+mqttc.getClientId()+" and TOPIC PREFIX="+topicPrefix);
 
 		MqttConnectOptions copts=new MqttConnectOptions();
+		copts.setWill(topicPrefix+"connected", "{ \"val\": false, \"ack\": true }".getBytes(), 1, true);
+		copts.setCleanSession(true);
 		try
 		{
 			mqttc.connect(copts);
+			mqttc.publish(topicPrefix+"connected", "{ \"val\": true, \"ack\": true }".getBytes(), 1, true);
 			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"#");
 			try
 			{
