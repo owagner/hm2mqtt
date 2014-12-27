@@ -8,9 +8,10 @@ hm2mqtt
 Overview
 --------
 
-hm2mqtt is a gateway between a Homematic system and MQTT. 
+hm2mqtt is a gateway between a Homematic home automation system and MQTT. 
 
 It's intended as a building block in heterogenous smart home environments where an MQTT message broker is used as the centralized message bus.
+See https://github.com/mqtt-smarthome for a project description.
 
 If you don't understand any of the above, hm2mqtt is most likely not useful to you.
 
@@ -97,8 +98,9 @@ Examples:
   
 See also
 --------
-- Overview: https://github.com/mqtt-smarthome
+- Project overview: https://github.com/mqtt-smarthome
 - knx2mqtt - similiar tool for KNX integration 
+- Homematic product information: http://www.homematic.com/
 - hmcompanion - where most of the HM-side code originates from
 
 
