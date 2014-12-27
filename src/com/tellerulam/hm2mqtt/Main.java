@@ -21,7 +21,7 @@ public class Main
 			String sp[]=s.split("=",2);
 			if(sp.length!=2)
 			{
-				System.out.println("Invalid argument (no =): "+s);
+				System.out.println("Invalid argument (no '='): "+s);
 				System.exit(1);
 			}
 			System.setProperty("hm2mqtt."+sp[0],sp[1]);

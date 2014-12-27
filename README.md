@@ -18,7 +18,7 @@ If you don't understand any of the above, hm2mqtt is most likely not useful to y
 Prerequisites
 -------------
 
-* Java 1.7 SE Runtime Environment: https://www.java.com/
+* Java 1.7 (or higher) SE Runtime Environment: https://www.java.com/
 * Eclipse Paho: https://www.eclipse.org/paho/clients/java/ (used for MQTT communication)
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
 
@@ -51,7 +51,7 @@ The message format accepted and generated is a JSON encoded object with the foll
 * hm_addr - source HM device address and channel number
  
 Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) are sent with the MQTT retain 
-flag set to _false_, all others with retain set to _true_.
+flag set to _false_, all others with retain set to _true_. 
 
 
 Usage
@@ -81,16 +81,23 @@ Examples:
 - hm.host
 
   List of host:port addresses where XML-RPC services are to be connected. If no port is specified,
-  the default ports of 2000 and 2001 will be used (rfd and hm485d on a CCU, respectivly)
+  the default ports of 2000 and 2001 will be used (rfd and hm485d on a CCU, respectivly).
+  No default, must be specified.
 
 - hm.idleTimeout
 
   When no XML-RPC request has been received for the specified amount of seconds, another XML-RPC init
   request will be sent to all services. Defaults to 300s.
+
+- hm.localhost
+
+  Local address used when sending init (callback) requests to the XML-RPC server. Default is
+  the result of getHostAddress().
   
   
 See also
 --------
+- Overview: https://github.com/mqtt-smarthome
 - knx2mqtt - similiar tool for KNX integration 
 - hmcompanion - where most of the HM-side code originates from
 

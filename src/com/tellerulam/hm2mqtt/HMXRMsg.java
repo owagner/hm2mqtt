@@ -48,9 +48,10 @@ public class HMXRMsg
 			addByte(ch);
 	}
 
-	String methodname;
-	Collection<Object> args=new ArrayList<Object>();
-	Stack<Collection<Object>> stack=new Stack<Collection<Object>>();
+	final String methodname;
+	final Stack<Collection<Object>> stack=new Stack<Collection<Object>>();
+
+	private Collection<Object> args=new ArrayList<Object>();
 
 	public void addUntypedArg(Object arg)
 	{

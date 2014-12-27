@@ -11,9 +11,9 @@ import java.util.*;
 
 public class HMXRResponse
 {
-	byte data[];
+	final byte data[];
+	final String methodName;
 	int dataoffset=0;
-	String methodName;
 
 	private int readInt()
 	{
@@ -24,7 +24,7 @@ public class HMXRResponse
 		return (new BigInteger(bi)).intValue();
 	}
 
-	List<Object> rd=new ArrayList<Object>();
+	final List<Object> rd=new ArrayList<Object>();
 
 	public List<Object> getData()
 	{
@@ -92,6 +92,8 @@ public class HMXRResponse
 			// Skip arg count
 			readInt();
 		}
+		else
+			methodName=null;
 
 		while(dataoffset<data.length)
 		{

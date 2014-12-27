@@ -163,6 +163,7 @@ public class HMXRConnection extends Thread
 				val=Integer.valueOf(0);
 		}
 
+		// We don't want to retain one-shot keypress notifications
 		boolean retain=!item.startsWith("PRESS_");
 
 		MQTTHandler.publish(topic+"/"+item, val.toString(), address, retain);
@@ -170,6 +171,11 @@ public class HMXRConnection extends Thread
 		return parms.get(0).toString();
 	}
 
+	/*
+	 * This is called by the XML-RPC server to tell us about all "new" devices.
+	 * Since we always pretend to not know any devices, we receive all of them.
+	 * We use that to learn the interface assignments.
+	 */
 
 	public void handleNewDevices(List<?> parms)
 	{

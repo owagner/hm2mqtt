@@ -10,8 +10,8 @@ import java.util.regex.*;
 
 public class ReGaDeviceCache
 {
-	static Map<String,ReGaItem> itemsByName=new HashMap<String,ReGaItem>();
-	static Map<String,ReGaItem> itemsByAddress=new HashMap<String,ReGaItem>();
+	static final Map<String,ReGaItem> itemsByName=new HashMap<String,ReGaItem>();
+	static final Map<String,ReGaItem> itemsByAddress=new HashMap<String,ReGaItem>();
 
 	static ReGaItem getItemByName(String name)
 	{

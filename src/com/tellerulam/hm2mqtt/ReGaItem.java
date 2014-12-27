@@ -2,10 +2,11 @@ package com.tellerulam.hm2mqtt;
 
 class ReGaItem implements Comparable<ReGaItem>
 {
-	int id;
-	String name;
-	String address;
-	String interf;
+	final int id;
+	final String name;
+	final String address;
+	final String interf;
+
 	ReGaItem(int id, String name, String address, String interf)
 	{
 		this.id = id;

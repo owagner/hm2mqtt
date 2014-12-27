@@ -57,7 +57,7 @@ public class HM
 		L.info("Listening for XML-RPC callbacks on "+serverurl);
 		String hmhosts=System.getProperty("hm2mqtt.hm.host");
 		if(hmhosts==null)
-			throw new IllegalArgumentException("You must specify hm.host");
+			throw new IllegalArgumentException("You must specify hm.host with the address of the CCU or XML-RPC server");
 		Set<String> regas=new HashSet<>();
 		for(String h:hmhosts.split(","))
 		{

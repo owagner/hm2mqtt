@@ -1,5 +1,5 @@
 /*
- * Class to send a HMScript request to the CCU
+ * Class to send a HMScript request to a CCU1/CCU2
  * using the tclrega.exe executor
  */
 
