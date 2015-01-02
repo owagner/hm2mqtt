@@ -7,7 +7,7 @@ import org.eclipse.paho.client.mqttv3.*;
 
 public class Main
 {
-	static public final String version="0.1";
+	static public final String version="0.2";
 
 	static final Timer t=new Timer(true);
 
@@ -26,7 +26,7 @@ public class Main
 			}
 			System.setProperty("hm2mqtt."+sp[0],sp[1]);
 		}
-		Logger.getLogger(Main.class.getName()).info("hm2mqtt V"+version+" (C) 2014 Oliver Wagner <owagner@tellerulam.com>");
+		Logger.getLogger(Main.class.getName()).info("hm2mqtt V"+version+" (C) 2015 Oliver Wagner <owagner@tellerulam.com>");
 		MQTTHandler.init();
 		HM.init();
 	}

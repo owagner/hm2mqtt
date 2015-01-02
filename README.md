@@ -1,7 +1,7 @@
 hm2mqtt
 =======
 
-  Written and (C) 2014 Oliver Wagner <owagner@tellerulam.com> 
+  Written and (C) 2015 Oliver Wagner <owagner@tellerulam.com> 
   
   Provided under the terms of the MIT license.
 
@@ -11,13 +11,13 @@ Overview
 hm2mqtt is a gateway between a Homematic home automation system and MQTT. 
 
 It's intended as a building block in heterogenous smart home environments where an MQTT message broker is used as the centralized message bus.
-See https://github.com/mqtt-smarthome for a project description.
+See https://github.com/mqtt-smarthome for a project overview.
 
 If you don't understand any of the above, hm2mqtt is most likely not useful to you.
 
 
-Prerequisites
--------------
+Dependencies
+------------
 
 * Java 1.7 (or higher) SE Runtime Environment: https://www.java.com/
 * Eclipse Paho: https://www.eclipse.org/paho/clients/java/ (used for MQTT communication)
@@ -106,5 +106,7 @@ See also
 
 Changelog
 ---------
-(work in progress)
+* 0.2 - 2015/01/02 - owagner
+  converted to Gradle build
+  
  
