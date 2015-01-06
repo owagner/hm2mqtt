@@ -162,10 +162,22 @@ public class MQTTHandler
 		Main.t.schedule(new StateChecker(),30*1000,30*1000);
 	}
 
-	private void doPublish(String name, String val, String addr,boolean retain)
+	private static final Charset utf8=Charset.forName("UTF-8");
+
+	private void doPublish(String name, Object val, String addr,boolean retain)
 	{
-		String txtmsg=new JsonObject().add("val",val).add("hm_addr",addr).add("ack",true).toString();
-		MqttMessage msg=new MqttMessage(txtmsg.getBytes(Charset.forName("UTF-8")));
+		JsonObject jso=new JsonObject();
+		jso.add("hm_addr",addr).add("ack",true);
+		if(val instanceof Double)
+			jso.add("val",((Double)val).doubleValue());
+		else if(val instanceof Integer)
+			jso.add("val",((Integer)val).intValue());
+		else if(val instanceof Boolean)
+			jso.add("val",((Boolean)val).booleanValue()?1:0);
+		else
+			jso.add("val",val.toString());
+		String txtmsg=jso.toString();
+		MqttMessage msg=new MqttMessage(txtmsg.getBytes(utf8));
 		// Default QoS is 1, which is what we want
 		msg.setRetained(retain);
 		try
@@ -175,11 +187,11 @@ public class MQTTHandler
 		}
 		catch(MqttException e)
 		{
-			L.log(Level.WARNING,"Error when publishing message",e);
+			L.log(Level.WARNING,"Error when publishing message "+txtmsg,e);
 		}
 	}
 
-	public static void publish(String name, String val, String src,boolean retain)
+	public static void publish(String name, Object val, String src,boolean retain)
 	{
 		instance.doPublish(name,val,src,retain);
 	}

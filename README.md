@@ -107,6 +107,9 @@ See also
 Changelog
 ---------
 * 0.2 - 2015/01/02 - owagner
-  converted to Gradle build
+  - converted to Gradle build
+* 0.3 - 2015/01/06 - owagner
+  - ensure numeric values are not sent as strings
+  
   
  

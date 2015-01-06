@@ -166,7 +166,7 @@ public class HMXRConnection extends Thread
 		// We don't want to retain one-shot keypress notifications
 		boolean retain=!item.startsWith("PRESS_");
 
-		MQTTHandler.publish(topic+"/"+item, val.toString(), address, retain);
+		MQTTHandler.publish(topic+"/"+item, val, address, retain);
 
 		return parms.get(0).toString();
 	}
