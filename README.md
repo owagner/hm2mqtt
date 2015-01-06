@@ -110,6 +110,9 @@ Changelog
   - converted to Gradle build
 * 0.3 - 2015/01/06 - owagner
   - ensure numeric values are not sent as strings
-  
+  - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
+    directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
+    
+    
   
  

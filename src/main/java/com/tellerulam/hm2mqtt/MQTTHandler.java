@@ -1,5 +1,6 @@
 package com.tellerulam.hm2mqtt;
 
+import java.math.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.logging.*;
@@ -168,8 +169,8 @@ public class MQTTHandler
 	{
 		JsonObject jso=new JsonObject();
 		jso.add("hm_addr",addr).add("ack",true);
-		if(val instanceof Double)
-			jso.add("val",((Double)val).doubleValue());
+		if(val instanceof BigDecimal)
+			jso.add("val",((BigDecimal)val).doubleValue());
 		else if(val instanceof Integer)
 			jso.add("val",((Integer)val).intValue());
 		else if(val instanceof Boolean)
