@@ -153,16 +153,6 @@ public class HMXRConnection extends Thread
 		else
 			topic=rit.name;
 
-		// Convert booleans to numeric
-		if(val instanceof Boolean)
-		{
-			Boolean b=(Boolean)val;
-			if(b.booleanValue())
-				val=Integer.valueOf(1);
-			else
-				val=Integer.valueOf(0);
-		}
-
 		// We don't want to retain one-shot keypress notifications
 		boolean retain=!item.startsWith("PRESS_");
 

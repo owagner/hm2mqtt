@@ -10,10 +10,9 @@ Overview
 
 hm2mqtt is a gateway between a Homematic home automation system and MQTT. 
 
-It's intended as a building block in heterogenous smart home environments where an MQTT message broker is used as the centralized message bus.
-See https://github.com/mqtt-smarthome for a project overview.
-
-If you don't understand any of the above, hm2mqtt is most likely not useful to you.
+It's intended as a building block in heterogenous smart home environments where 
+an MQTT message broker is used as the centralized message bus.
+See https://github.com/mqtt-smarthome for a rationale and architectural overview.
 
 
 Dependencies
@@ -22,6 +21,9 @@ Dependencies
 * Java 1.7 (or higher) SE Runtime Environment: https://www.java.com/
 * Eclipse Paho: https://www.eclipse.org/paho/clients/java/ (used for MQTT communication)
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
+
+It is possible to run hm2mqtt directly on a CCU2, using the Embedded JRE which is installed
+in /opt/ejre1.7.0_10/bin
 
 
 Device names and topic structure
@@ -93,7 +95,8 @@ Examples:
 - hm.localhost
 
   Local address used when sending init (callback) requests to the XML-RPC server. Default is
-  the result of getHostAddress().
+  the result of getHostAddress(). Set this when hm2mqtt has trouble determining your local host's
+  address automatically. 
   
   
 See also
@@ -112,7 +115,3 @@ Changelog
   - ensure numeric values are not sent as strings
   - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
     directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
-    
-    
-  
- 
