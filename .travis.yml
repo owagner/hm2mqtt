@@ -6,3 +6,5 @@ deploy:
   file: hm2mqtt.jar
   on:
     repo: mqtt-smarthome/hm2mqtt
+    tags: true
+    all_branches: true
