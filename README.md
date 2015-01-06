@@ -7,7 +7,6 @@ hm2mqtt
 
 Overview
 --------
-
 hm2mqtt is a gateway between a Homematic home automation system and MQTT. 
 
 It's intended as a building block in heterogenous smart home environments where 
@@ -17,13 +16,14 @@ See https://github.com/mqtt-smarthome for a rationale and architectural overview
 
 Dependencies
 ------------
-
 * Java 1.7 (or higher) SE Runtime Environment: https://www.java.com/
 * Eclipse Paho: https://www.eclipse.org/paho/clients/java/ (used for MQTT communication)
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
 
 It is possible to run hm2mqtt directly on a CCU2, using the Embedded JRE which is installed
 in /opt/ejre1.7.0_10/bin
+
+[![Build Status](https://travis-ci.org/mqtt-smarthome/hm2mqtt.png)](https://travis-ci.org/mqtt-smarthome/hm2mqtt)
 
 
 Device names and topic structure
@@ -45,7 +45,6 @@ currently running. It's set to false on disconnect using a MQTT will.
 
 MQTT Message format
 --------------------
-
 The message format accepted and generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
