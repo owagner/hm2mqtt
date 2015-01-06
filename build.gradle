@@ -24,7 +24,8 @@ task listJars << {
 
 jar {
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    manifest {
+	archiveName 'hm2mqtt.jar'
+	manifest {
         attributes 	'Main-Class': 'com.tellerulam.hm2mqtt.Main',
         			'Implementation-Title': 'hm2mqtt Homematic to MQTT bridge',
                    	'Implementation-Version': version
