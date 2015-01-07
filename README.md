@@ -24,6 +24,7 @@ It is possible to run hm2mqtt directly on a CCU2, using the Embedded JRE which i
 in /opt/ejre1.7.0_10/bin
 
 [![Build Status](https://travis-ci.org/mqtt-smarthome/hm2mqtt.png)](https://travis-ci.org/mqtt-smarthome/hm2mqtt)
+Automatically build jars can be downloaded from the release page on GitHub at https://github.com/mqtt-smarthome/hm2mqtt/releases
 
 
 Device names and topic structure
