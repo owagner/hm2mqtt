@@ -270,7 +270,7 @@ public class HMXRConnection extends Thread
 						m.addArg(Boolean.TRUE);
 					else if("false".equalsIgnoreCase(value))
 						m.addArg(Boolean.FALSE);
-					else if(Integer.parseInt(value)!=0)
+					else if(Double.parseDouble(value)!=0)
 						m.addArg(Boolean.TRUE);
 					else
 						m.addArg(Boolean.FALSE);
