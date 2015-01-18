@@ -148,6 +148,5 @@ Changelog
     are set to not retain, all others are set to retain. When incoming messages are learned, it is not
     possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
     decision is still made based on the "PRESS_" prefix
-    
 
     

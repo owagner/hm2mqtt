@@ -5,6 +5,8 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.logging.*;
 
+import jdk.internal.org.objectweb.asm.tree.analysis.*;
+
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.*;
 
@@ -82,19 +84,25 @@ public class MQTTHandler
 		{
 			String datapoint=topic.substring(slashIx+1,topic.length());
 			String address=topic.substring(0,slashIx);
-			String value=data.get("val").toString();
+
+			JsonValue val=data.get("val");
+			String convertedValue;
+			if(val.isString())
+				convertedValue=val.asString();
+			else
+				convertedValue=val.toString();
 
 			Collection<ReGaItem> devs=ReGaDeviceCache.getItemsByName(address);
 			if(devs!=null)
 			{
 				for(ReGaItem rit:devs)
-					HM.setValue(rit.address,datapoint,value);
+					HM.setValue(rit.address,datapoint,convertedValue);
 
 			}
 			else
 			{
 				// Assume it's an actual address
-				HM.setValue(address,datapoint,value);
+				HM.setValue(address,datapoint,convertedValue);
 			}
 		}
 	}
