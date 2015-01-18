@@ -129,10 +129,23 @@ public class HMXRConnection extends Thread
 		}
 	}
 
+	private static enum HM_Types {
+		FLOAT,
+		INTEGER,
+		BOOL,
+		ENUM,
+		STRING,
+		ACTION,
+		/* Special value: we received a BOOL and don't know yet whether it's an action */
+		GUESSED_BOOL
+	}
+
+	private final Map<String,HM_Types> typeCache=new HashMap<>();
+
 	String handleEvent(List<?> parms)
 	{
 		String address=parms.get(1).toString();
-		String item=parms.get(2).toString();
+		String datapoint=parms.get(2).toString();
 		Object val=parms.get(3);
 
 		synchronized(assignedAddresses)
@@ -140,7 +153,7 @@ public class HMXRConnection extends Thread
 			assignedAddresses.add(channelIDtoAddress(address));
 		}
 
-		L.finest("Got CB "+address+" "+item+" "+val);
+		L.finest("Got CB "+address+" "+datapoint+" "+val);
 
 		String topic;
 
@@ -153,12 +166,127 @@ public class HMXRConnection extends Thread
 		else
 			topic=rit.name;
 
-		// We don't want to retain one-shot keypress notifications
-		boolean retain=!item.startsWith("PRESS_");
+		// Determine the datatype
+		HM_Types type;
+		synchronized(typeCache)
+		{
+			String typeKey=address+"$"+datapoint;
+			type=typeCache.get(typeKey);
+			if(type==null)
+			{
+				if(val instanceof Double)
+					type=HM_Types.FLOAT;
+				else if(val instanceof Integer)
+					type=HM_Types.INTEGER;
+				else if(val instanceof Boolean)
+				{
+					if(datapoint.startsWith("PRESS_"))
+						type=HM_Types.ACTION;
+					else
+						type=HM_Types.GUESSED_BOOL;
+				}
+				else
+					type=HM_Types.STRING;
+				typeCache.put(typeKey,type);
+			}
+		}
 
-		MQTTHandler.publish(topic+"/"+item, val, address, retain);
+		// We don't want to retain ACTION one-shot keypress notifications
+		boolean retain=(type!=HM_Types.ACTION);
+
+		MQTTHandler.publish(topic+"/"+datapoint, val, address, retain);
 
 		return parms.get(0).toString();
+	}
+
+	private HMXRResponse getParamsetDescription(String address,String which) throws IOException, ParseException
+	{
+		HMXRMsg m=new HMXRMsg("getParamsetDescription");
+		m.addArg(address);
+		m.addArg(which);
+		return sendRequest(m);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void fillTypeCache(String address) throws IOException, ParseException
+	{
+		HMXRResponse m=getParamsetDescription(address, "VALUES");
+		for(Object d:m.getData())
+		{
+			if(d instanceof Map)
+			{
+				for(Map.Entry<String,Map<String,String>> me:((Map<String,Map<String,String>>)d).entrySet())
+				{
+					String datapoint=me.getKey();
+					Map<String,String> paramset=me.getValue();
+					String type=paramset.get("TYPE");
+					HM_Types hmtype=HM_Types.valueOf(type);
+					String typeKey=address+"$"+datapoint;
+					typeCache.put(typeKey,hmtype);
+					L.info("Learned type "+hmtype+" for "+typeKey);
+				}
+			}
+		}
+	}
+
+	void setValue(String address, String datapoint, String value)
+	{
+		HMXRMsg m=new HMXRMsg("setValue");
+		m.addArg(address);
+		m.addArg(datapoint);
+
+		// Determine the datatype
+		try
+		{
+			HM_Types type;
+			synchronized(typeCache)
+			{
+				String typeKey=address+"$"+datapoint;
+				type=typeCache.get(typeKey);
+				if(type==null)
+				{
+					L.info("No type known for "+address+"."+datapoint+", getting paramSetDescription");
+					fillTypeCache(address);
+					type=typeCache.get(typeKey);
+				}
+				// Fallback
+				if(type==null)
+					type=HM_Types.STRING;
+			}
+
+			switch(type)
+			{
+				case FLOAT:
+					m.addArg(Double.valueOf(value));
+					break;
+				case ENUM:
+				case INTEGER:
+					m.addArg(Integer.valueOf(value));
+					break;
+				case GUESSED_BOOL:
+				case BOOL:
+				case ACTION:
+					if("true".equalsIgnoreCase(value))
+						m.addArg(Boolean.TRUE);
+					else if("false".equalsIgnoreCase(value))
+						m.addArg(Boolean.FALSE);
+					else if(Integer.parseInt(value)!=0)
+						m.addArg(Boolean.TRUE);
+					else
+						m.addArg(Boolean.FALSE);
+					break;
+				case STRING:
+					m.addArg(value);
+					break;
+			}
+			HMXRResponse response=sendRequest(m);
+			L.log(Level.INFO,"setValue returned "+response);
+			return;
+		}
+		catch(IOException | ParseException e)
+		{
+			L.log(Level.WARNING,"Error when setting value on "+address,e);
+		}
 	}
 
 	/*

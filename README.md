@@ -13,6 +13,11 @@ It's intended as a building block in heterogenous smart home environments where
 an MQTT message broker is used as the centralized message bus.
 See https://github.com/mqtt-smarthome for a rationale and architectural overview.
 
+hm2mqtt communicates with Homematic using the documented XML-RPC API
+and thus requires either an CCU1/CCU2 or a Homematic configuration adapter with
+the XML-RPC service running on a host (currently Windows-only). It is _not_
+able to talk directly to Homematic devices using 3rd party hardware like a CUL.
+
 
 Dependencies
 ------------
@@ -44,6 +49,23 @@ A special topic is *prefix/connected*. It holds a boolean value which denotes wh
 currently running. It's set to false on disconnect using a MQTT will.
 
 
+Homematic Data types
+--------------------
+Homematic datapoints can have a variety of data types:
+
+* FLOAT
+* INTEGER
+* BOOL
+* ENUM
+* STRING
+* ACTION
+
+hm2mqtt needs to know the type of a data point in order to properly encode the outgoing messages.
+Types are learned from incoming HM callbacks. If the type is still unknown during a write operation,
+a *getParamsetDescription* call is made for the given device channel, and types are learned from
+there.
+
+
 MQTT Message format
 --------------------
 The message format accepted and generated is a JSON encoded object with the following members:
@@ -52,9 +74,10 @@ The message format accepted and generated is a JSON encoded object with the foll
 * ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
   are ignored, to avoid loops.
 * hm_addr - source HM device address and channel number
+
+Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_  
  
-Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) are sent with the MQTT retain 
-flag set to _false_, all others with retain set to _true_. 
+Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) . 
 
 
 Usage
@@ -102,8 +125,9 @@ Examples:
 See also
 --------
 - Project overview: https://github.com/mqtt-smarthome
-- knx2mqtt - similiar tool for KNX integration 
 - Homematic product information: http://www.homematic.com/
+- Homematic XML-RPC API specification: http://www.eq-3.de/downloads.html (search for "rpc")
+- knx2mqtt - similiar tool for KNX integration 
 - hmcompanion - where most of the HM-side code originates from
 
 
@@ -115,3 +139,15 @@ Changelog
   - ensure numeric values are not sent as strings
   - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
     directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
+* 0.4 - 2015/01/18 - owagner
+  - do proper type handling in outgoing requests, as the previous always-string approach failed with
+    boolean datapoints. Will now cache a type per datapoint. Cache is filled on incoming messages.
+    If a type is unknown on outgoing messages, a getParamsetDescription request is made via XMLRPC
+    and all types are learned for the given channel's datapoint.
+  - The "retain" strategy is now based on whether a datapoint is of type ACTION or not. ACTIONs
+    are set to not retain, all others are set to retain. When incoming messages are learned, it is not
+    possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
+    decision is still made based on the "PRESS_" prefix
+    
+
+    

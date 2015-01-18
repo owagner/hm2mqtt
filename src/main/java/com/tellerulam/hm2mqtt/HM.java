@@ -114,20 +114,8 @@ public class HM
 		{
 			if(c.handlesDevice(devAddress))
 			{
-				HMXRMsg m=new HMXRMsg("setValue");
-				m.addArg(address);
-				m.addArg(datapoint);
-				// Strangely, if we send everything as string, rfd/hs485d will do conversion for us.
-				m.addArg(value);
-				try
-				{
-					c.sendRequest(m);
-					return;
-				}
-				catch(IOException | ParseException e)
-				{
-					instance.L.log(Level.WARNING,"Error when setting value on "+address,e);
-				}
+				c.setValue(address,datapoint,value);
+				return;
 			}
 		}
 		instance.L.warning("Unable to find a HM connection for address "+address);
