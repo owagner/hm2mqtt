@@ -1,7 +1,6 @@
 package com.tellerulam.hm2mqtt;
 
 import java.io.*;
-import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
