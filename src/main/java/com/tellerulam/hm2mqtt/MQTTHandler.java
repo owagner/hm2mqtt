@@ -61,49 +61,41 @@ public class MQTTHandler
 
 	private boolean shouldBeConnected;
 
-	void processMessage(String topic,MqttMessage msg)
+	void processSet(String topic,MqttMessage msg)
 	{
 		if(msg.isRetained())
 		{
-			L.fine("Ignoring retained message "+msg+" to "+topic);
+			L.fine("Ignoring retained set message "+msg+" to "+topic);
 			return;
 		}
-		JsonObject data=JsonObject.readFrom(new String(msg.getPayload(),Charset.forName("UTF-8")));
-		JsonValue ack=data.get("ack");
-		if(ack!=null && ack.asBoolean())
-		{
-			L.fine("Ignoring ack'ed message "+msg+" to "+topic);
-			return;
-		}
-		L.info("Received "+msg+" to "+topic);
-		topic=topic.substring(topicPrefix.length(),topic.length());
 
 		int slashIx=topic.lastIndexOf('/');
 		if(slashIx>=0)
 		{
 			String datapoint=topic.substring(slashIx+1,topic.length());
 			String address=topic.substring(0,slashIx);
-
-			JsonValue val=data.get("val");
-			String convertedValue;
-			if(val.isString())
-				convertedValue=val.asString();
-			else
-				convertedValue=val.toString();
+			String data=new String(msg.getPayload(),StandardCharsets.UTF_8);
 
 			Collection<ReGaItem> devs=ReGaDeviceCache.getItemsByName(address);
 			if(devs!=null)
 			{
 				for(ReGaItem rit:devs)
-					HM.setValue(rit.address,datapoint,convertedValue);
+					HM.setValue(rit.address,datapoint,data);
 
 			}
 			else
 			{
 				// Assume it's an actual address
-				HM.setValue(address,datapoint,convertedValue);
+				HM.setValue(address,datapoint,data);
 			}
 		}
+	}
+
+	void processMessage(String topic,MqttMessage msg)
+	{
+		topic=topic.substring(topicPrefix.length(),topic.length());
+		if(topic.startsWith("set/"))
+			processSet(topic.substring(4),msg);
 	}
 
 	private void doConnect()
@@ -111,16 +103,17 @@ public class MQTTHandler
 		L.info("Connecting to MQTT broker "+mqttc.getServerURI()+" with CLIENTID="+mqttc.getClientId()+" and TOPIC PREFIX="+topicPrefix);
 
 		MqttConnectOptions copts=new MqttConnectOptions();
-		copts.setWill(topicPrefix+"connected", "{ \"val\": false, \"ack\": true }".getBytes(), 1, true);
+		copts.setWill(topicPrefix+"connected", "0".getBytes(), 2, true);
 		copts.setCleanSession(true);
 		try
 		{
 			mqttc.connect(copts);
-			mqttc.publish(topicPrefix+"connected", "{ \"val\": true, \"ack\": true }".getBytes(), 1, true);
-			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"#");
+			mqttc.publish(topicPrefix+"connected", "2".getBytes(), 1, true);
+			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"(set|get)/#");
 			try
 			{
-				mqttc.subscribe(topicPrefix+"#",1);
+				mqttc.subscribe(topicPrefix+"set/#",1);
+				mqttc.subscribe(topicPrefix+"get/#",1);
 				shouldBeConnected=true;
 			}
 			catch(MqttException mqe)
@@ -186,12 +179,13 @@ public class MQTTHandler
 			jso.add("val",val.toString());
 		String txtmsg=jso.toString();
 		MqttMessage msg=new MqttMessage(txtmsg.getBytes(utf8));
-		// Default QoS is 1, which is what we want
+		msg.setQos(0);
 		msg.setRetained(retain);
 		try
 		{
-			mqttc.publish(topicPrefix+name, msg);
-			L.info("Published "+txtmsg+" to "+topicPrefix+name);
+			String fullTopic=topicPrefix+"status/"+name;
+			mqttc.publish(fullTopic, msg);
+			L.info("Published "+txtmsg+" to "+fullTopic);
 		}
 		catch(MqttException e)
 		{

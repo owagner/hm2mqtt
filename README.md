@@ -39,14 +39,16 @@ on port 8181. If this succeeds, channel names will be resolved into symbolic nam
 
 The topics generated and accepted are of the form
 
-`prefix/channel/datapoint`
+`prefix/function/channel/datapoint`
+
+The *function* is _status_ for published status reports and _set_ for inbound change requests.
 
 The *channel* is either the raw address or a name resolved by querying the ReGa.
 
 Note that incoming messages are accepted on both the symbolic and the address channel name.
 
-A special topic is *prefix/connected*. It holds a boolean value which denotes whether the adapter is
-currently running. It's set to false on disconnect using a MQTT will.
+A special topic is *prefix/connected*. It holds an enum value which denotes whether the adapter is
+currently running and connected to HM. It's set to 0 on disconnect using a MQTT will.
 
 
 Homematic Data types
@@ -68,17 +70,15 @@ there.
 
 MQTT Message format
 --------------------
-The message format accepted and generated is a JSON encoded object with the following members:
+The message format generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
 * ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
   are ignored, to avoid loops.
 * hm_addr - source HM device address and channel number
 
-Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_  
- 
-Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) . 
-
+Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_.
+_ACTION_s are for example key press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
 
 Usage
 -----
@@ -148,5 +148,10 @@ Changelog
     are set to not retain, all others are set to retain. When incoming messages are learned, it is not
     possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
     decision is still made based on the "PRESS_" prefix
-
+* 0.5 - 2015/01/25 - owagner
+  - adapted to new mqtt-smarthome topic hierarchies: /status/ for reports, /set/ for setting values
+  - prefix/connected is now an enum as suggested by new mqtt-smarthome spec
+  - use QoS 0 for published status reports
+  
+    
     
