@@ -76,18 +76,15 @@ public class MQTTHandler
 			String address=topic.substring(0,slashIx);
 			String data=new String(msg.getPayload(),StandardCharsets.UTF_8);
 
-			Collection<ReGaItem> devs=ReGaDeviceCache.getItemsByName(address);
-			if(devs!=null)
+			DeviceInfo di=DeviceInfo.getByName(address);
+			if(di==null)
+				di=DeviceInfo.getByAddress(address);
+			if(di==null)
 			{
-				for(ReGaItem rit:devs)
-					HM.setValue(rit.address,datapoint,data);
-
+				L.warning("Got set to unknown name/address "+address+", ignoring");
+				return;
 			}
-			else
-			{
-				// Assume it's an actual address
-				HM.setValue(address,datapoint,data);
-			}
+			HM.setValue(di,datapoint,data);
 		}
 	}
 
@@ -163,8 +160,6 @@ public class MQTTHandler
 		Main.t.schedule(new StateChecker(),30*1000,30*1000);
 	}
 
-	private static final Charset utf8=Charset.forName("UTF-8");
-
 	private void doPublish(String name, Object val, String addr,boolean retain)
 	{
 		JsonObject jso=new JsonObject();
@@ -178,14 +173,14 @@ public class MQTTHandler
 		else
 			jso.add("val",val.toString());
 		String txtmsg=jso.toString();
-		MqttMessage msg=new MqttMessage(txtmsg.getBytes(utf8));
+		MqttMessage msg=new MqttMessage(txtmsg.getBytes(StandardCharsets.UTF_8));
 		msg.setQos(0);
 		msg.setRetained(retain);
 		try
 		{
 			String fullTopic=topicPrefix+"status/"+name;
 			mqttc.publish(fullTopic, msg);
-			L.info("Published "+txtmsg+" to "+fullTopic);
+			L.info("Published "+txtmsg+" to "+fullTopic+(retain?" (R)":""));
 		}
 		catch(MqttException e)
 		{

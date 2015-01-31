@@ -1,6 +1,7 @@
 package com.tellerulam.hm2mqtt;
 
 import java.io.*;
+import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -26,19 +27,7 @@ public class HM
 			c.sendInit();
 	}
 
-	static String dispatchEvent(List<?> parms)
-	{
-		String cbid=parms.get(0).toString();
-		HMXRConnection c=instance.connections.get(cbid);
-		if(c==null)
-		{
-			instance.L.warning("Received event with unknown callback ID "+parms);
-			return null;
-		}
-		return c.handleEvent(parms);
-	}
-
-	public static void dispatchNewDevices(List<?> parms)
+	static void dispatchEvent(List<?> parms)
 	{
 		String cbid=parms.get(0).toString();
 		HMXRConnection c=instance.connections.get(cbid);
@@ -47,7 +36,43 @@ public class HM
 			instance.L.warning("Received event with unknown callback ID "+parms);
 			return;
 		}
+		c.handleEvent(parms);
+	}
+
+	static void dispatchNewDevices(List<?> parms) throws IOException, ParseException
+	{
+		String cbid=parms.get(0).toString();
+		HMXRConnection c=instance.connections.get(cbid);
+		if(c==null)
+		{
+			instance.L.warning("Received newDevices with unknown callback ID "+parms);
+			return;
+		}
 		c.handleNewDevices(parms);
+	}
+
+	static void dispatchDeleteDevices(List<?> parms)
+	{
+		String cbid=parms.get(0).toString();
+		HMXRConnection c=instance.connections.get(cbid);
+		if(c==null)
+		{
+			instance.L.warning("Received deleteDevices with unknown callback ID "+parms);
+			return;
+		}
+		c.handleDeleteDevices(parms);
+	}
+
+	static HMXRMsg dispatchListDevices(List<?> parms)
+	{
+		String cbid=parms.get(0).toString();
+		HMXRConnection c=instance.connections.get(cbid);
+		if(c==null)
+		{
+			instance.L.warning("Received listDevices with unknown callback ID "+parms);
+			return null;
+		}
+		return c.handleListDevices(parms);
 	}
 
 	private void doInit() throws IOException
@@ -75,7 +100,8 @@ public class HM
 		for(String rega:regas)
 		{
 			TCLRegaHandler.setHMHost(rega);
-			ReGaDeviceCache.loadDeviceCache();
+			ReGaDeviceNameResolver.fetchDeviceNames();
+			//ReGaDeviceCache.loadDeviceCache();
 		}
 
 		sendInits();
@@ -94,9 +120,10 @@ public class HM
 	private void addConnection(String host,int port,String serverurl)
 	{
 		int ix=connections.size();
-		HMXRConnection c=new HMXRConnection(host, port, serverurl, ix);
-		connections.put("CB"+ix,c);
-		L.info("Adding connection "+ix+" to XML-RPC service at "+host+":"+port);
+		String cbid="CB"+ix;
+		HMXRConnection c=new HMXRConnection(host, port, serverurl, cbid);
+		connections.put(cbid,c);
+		L.info("Adding connection "+cbid+" to XML-RPC service at "+host+":"+port);
 		ix++;
 	}
 
@@ -106,18 +133,26 @@ public class HM
 
 	private final Logger L=Logger.getLogger(getClass().getName());
 
-	public static void setValue(String address, String datapoint, String value)
+	public static void setValue(DeviceInfo di, String datapoint, String value)
 	{
-		String devAddress=HMXRConnection.channelIDtoAddress(address);
-		for(HMXRConnection c:instance.connections.values())
+		HMXRConnection c=instance.connections.get(di.ifid);
+		if(c==null)
 		{
-			if(c.handlesDevice(devAddress))
-			{
-				c.setValue(address,datapoint,value);
-				return;
-			}
+			instance.L.warning("Unable to find a HM connection for device "+di);
+			return;
 		}
-		instance.L.warning("Unable to find a HM connection for address "+address);
+		c.setValue(di,datapoint,value);
+	}
+
+	public static Map<String, HMValueTypes> obtainValueTypes(String address, String ifid) throws IOException, ParseException
+	{
+		HMXRConnection c=instance.connections.get(ifid);
+		if(c==null)
+		{
+			instance.L.warning("Unable to find a HM connection for "+ifid);
+			return null;
+		}
+		return c.getParamsetDescription(address,"VALUES");
 	}
 
 }
