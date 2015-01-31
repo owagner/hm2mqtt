@@ -67,6 +67,26 @@ Types are obtained using *getParamsetDescription* calls when new devices show up
 in the device cache file.
 
 
+Registering as a link partner
+-----------------------------
+hm2mqtt will report to the Homematic interface server (e.g. the CCU) that it is explicitely using 
+each and every datapoint.  This will in turn cause the interface server to register itself as a
+link partner with the remote device.
+
+This means that everytime the remote device sends a status message, it expects the interface
+server to acknowledge this (true bidirectional communication), like it does with any other direct
+link partners.
+
+If the interface server is not linked with the device, it will still receive and process
+status messages. However, there is no bidirectional communication in that case -- if the interface
+server does, for any reason (like RF interference), not receive a status message, the remote
+device will not resend it. This particular behavior is often not well understood.
+
+One side-effect of this is that on the first time that hm2mqtt is started, there may be a
+lot of new pending configs in case devices were not previously linked with the interface
+server. For a CCU, this is for example the case if a device is not used in a ReGa program.
+
+
 MQTT Message format
 --------------------
 The message format generated is a JSON encoded object with the following members:
@@ -76,6 +96,7 @@ The message format generated is a JSON encoded object with the following members
 
 Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_.
 _ACTION_s e.G. are press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
+
 
 Usage
 -----
@@ -155,7 +176,7 @@ Changelog
 * 0.6 - 2015/01/31 - owagner
   - completely reworked internal device management. Now properly implements the 
     listDevices/newDevices/deleteDevices contract recommended by HM's XML-RPC API, and will store local
-    device information in a file hm2mqtt.devcache
+    device information in a file (default: hm2mqtt.devcache)
   - now correctly calls reportValueUsage with count=1 on every channel's datapoint. Note that this may
     result in a large number of pending configurations if devices weren't previously strongly linked to
     the XML-RPC server
