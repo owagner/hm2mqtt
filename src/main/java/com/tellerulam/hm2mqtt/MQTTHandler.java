@@ -163,7 +163,7 @@ public class MQTTHandler
 	private void doPublish(String name, Object val, String addr,boolean retain)
 	{
 		JsonObject jso=new JsonObject();
-		jso.add("hm_addr",addr).add("ack",true);
+		jso.add("hm_addr",addr);
 		if(val instanceof BigDecimal)
 			jso.add("val",((BigDecimal)val).doubleValue());
 		else if(val instanceof Integer)
