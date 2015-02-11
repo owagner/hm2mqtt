@@ -16,6 +16,9 @@ public class ReGaDeviceNameResolver
 	 */
 	static public void fetchDeviceNames()
 	{
+		if(Boolean.getBoolean("hm2mqtt.hm.disableReGa"))
+			return;
+
 		lastFetch=System.currentTimeMillis();
 
 		L.info("Obtaining ReGa device and channel names");
@@ -69,6 +72,9 @@ public class ReGaDeviceNameResolver
 
 	public static synchronized void queueNameFetch()
 	{
+		if(Boolean.getBoolean("hm2mqtt.hm.disableReGa"))
+			return;
+
 		// We only attempt to fetch once every 10 minutes
 		if(pendingFetch==null)
 		{

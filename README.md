@@ -153,7 +153,13 @@ Examples:
 
   Local address used when sending init (callback) requests to the XML-RPC server. Default is
   the result of getHostAddress(). Set this when hm2mqtt has trouble determining your local host's
-  address automatically. 
+  address automatically.
+  
+- hm.disableReGa
+
+  Boolean. When set to true, disable all attempts to resolve names via ReGa. Will
+  use channel and device IDs as names.
+   
   
 See also
 --------
@@ -196,5 +202,8 @@ Changelog
     When a ReGa fetch worked once (i.e. a ReGa is known to be present), failed names will always be
     published with the retain flag set to false, to avoid the unresolved names ending up in the
     MQTT broker's persistent storage
+* 0.7 - 2015/02/11 - owagner
+  - added new option hm.disableReGa to disable all name lookups via ReGa
+  
     
     
