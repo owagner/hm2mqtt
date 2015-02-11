@@ -69,9 +69,20 @@ Examples:
     
 ### Available options:    
 
-- mqtt.broker
+- mqtt.server
 
-  ServerURI of the MQTT broker to connect to. Defaults to "tcp://localhost:1883".
+  ServerURI of the MQTT broker to connect to. Defaults to "tcp://localhost:1883". 
+  
+  Two types of connection are supported: tcp:// for a TCP connection and ssl:// for a TCP connection secured by SSL/TLS. 
+  For example:
+
+    tcp://localhost:1883
+    ssl://localhost:8883
+
+  If the port is not specified, it will default to 1883 for tcp:// URIs, and 8883 for ssl:// URIs.
+  
+  Note that using SSL connections requires additional configuration at the JVM level. For example, the
+  broker's certificate needs to be verifiable by the JVM using it's CA cert store.
   
 - mqtt.clientid
 
