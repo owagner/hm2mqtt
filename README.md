@@ -117,8 +117,8 @@ Examples:
   Two types of connection are supported: tcp:// for a TCP connection and ssl:// for a TCP connection secured by SSL/TLS. 
   For example:
 
-    tcp://localhost:1883
-    ssl://localhost:8883
+        tcp://localhost:1883
+        ssl://localhost:8883
 
   If the port is not specified, it will default to 1883 for tcp:// URIs, and 8883 for ssl:// URIs.
   
