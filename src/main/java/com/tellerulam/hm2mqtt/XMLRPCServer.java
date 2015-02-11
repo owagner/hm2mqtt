@@ -2,6 +2,7 @@ package com.tellerulam.hm2mqtt;
 
 import java.io.*;
 import java.net.*;
+import java.text.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
@@ -51,27 +52,6 @@ public class XMLRPCServer implements Runnable
 		}
 	}
 
-	static Map<String,Long> stats=new HashMap<String,Long>();
-	@SuppressWarnings("boxing")
-	static void incMsg(String key)
-	{
-		Long l=stats.get(key);
-		if(l==null)
-			stats.put(key,new Long(1));
-		else
-			stats.put(key,l+1);
-	}
-
-	@SuppressWarnings("boxing")
-	static long getStats(String which)
-	{
-		Long l=stats.get(which);
-		if(l==null)
-			return 0;
-		else
-			return l;
-	}
-
 	final Socket s;
 	OutputStream os;
 	XMLRPCServer(Socket s)
@@ -79,28 +59,30 @@ public class XMLRPCServer implements Runnable
 		this.s=s;
 	}
 
-	private void handleNewDevices(HMXRResponse r)
-	{
-		HM.dispatchNewDevices(r.rd);
-	}
-
-	private void handleMethodCall(HMXRResponse r) throws IOException
+	private void handleMethodCall(HMXRResponse r) throws IOException, ParseException
 	{
 		lastRequest=System.currentTimeMillis();
 		if("event".equals(r.methodName))
 		{
-			String cb=HM.dispatchEvent(r.rd);
-			incMsg(cb);
+			HM.dispatchEvent(r.rd);
 			os.write(bEmptyString);
 		}
 		else if("listDevices".equals(r.methodName))
 		{
-			// Pretend we don't know any devices yet
-			os.write(bEmptyArray);
+			HMXRMsg knownDevices=HM.dispatchListDevices(r.rd);
+			if(knownDevices!=null)
+				os.write(knownDevices.prepareData());
+			else
+				os.write(bEmptyArray);
 		}
 		else if("newDevices".equals(r.methodName))
 		{
-			handleNewDevices(r);
+			HM.dispatchNewDevices(r.rd);
+			os.write(bEmptyArray);
+		}
+		else if("deleteDevices".equals(r.methodName))
+		{
+			HM.dispatchDeleteDevices(r.rd);
 			os.write(bEmptyArray);
 		}
 		else if("system.listMethods".equals(r.methodName))
@@ -108,6 +90,11 @@ public class XMLRPCServer implements Runnable
 			HMXRMsg m=new HMXRMsg(null);
 			List<Object> result=new ArrayList<Object>();
 			result.add("event");
+			result.add("listDevices");
+			result.add("newDevices");
+			result.add("deleteDevices");
+			result.add("system.multicall");
+			result.add("system.listMethods");
 			m.addArg(result);
 			os.write(m.prepareData());
 		}
@@ -117,23 +104,19 @@ public class XMLRPCServer implements Runnable
 
 			List<Object> result=new ArrayList<Object>();
 
-			String cb=null;
-
 			for(Object o:(List<?>)r.rd.get(0))
 			{
 				Map<?,?> call=(Map<?,?>)o;
 				String method=call.get("methodName").toString();
 				if("event".equals(method))
 				{
-					cb=HM.dispatchEvent((List<?>)call.get("params"));
+					HM.dispatchEvent((List<?>)call.get("params"));
 				}
 				else
 					L.warning("Unknown method in multicall called by XML-RPC service: "+method);
 
 				result.add(Collections.singletonList(""));
 			}
-
-			incMsg(cb);
 
 			m.addArg(result);
 			os.write(m.prepareData());

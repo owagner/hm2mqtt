@@ -13,6 +13,11 @@ It's intended as a building block in heterogenous smart home environments where
 an MQTT message broker is used as the centralized message bus.
 See https://github.com/mqtt-smarthome for a rationale and architectural overview.
 
+hm2mqtt communicates with Homematic using the documented XML-RPC API
+and thus requires either an CCU1/CCU2 or a Homematic configuration adapter with
+the XML-RPC service running on a host (currently Windows-only). It is _not_
+able to talk directly to Homematic devices using 3rd party hardware like a CUL.
+
 
 Dependencies
 ------------
@@ -34,27 +39,63 @@ on port 8181. If this succeeds, channel names will be resolved into symbolic nam
 
 The topics generated and accepted are of the form
 
-`prefix/channel/datapoint`
+`prefix/function/channel/datapoint`
+
+The *function* is _status_ for published status reports and _set_ for inbound change requests.
 
 The *channel* is either the raw address or a name resolved by querying the ReGa.
 
 Note that incoming messages are accepted on both the symbolic and the address channel name.
 
-A special topic is *prefix/connected*. It holds a boolean value which denotes whether the adapter is
-currently running. It's set to false on disconnect using a MQTT will.
+A special topic is *prefix/connected*. It holds an enum value which denotes whether the adapter is
+currently running (1) and connected to HM (2). It's set to 0 on disconnect using a MQTT will.
+
+
+Homematic Data types
+--------------------
+Homematic datapoints can have a variety of data types:
+
+* FLOAT
+* INTEGER
+* BOOL
+* ENUM
+* STRING
+* ACTION
+
+hm2mqtt needs to know the type of a data point in order to properly encode the outgoing messages.
+Types are obtained using *getParamsetDescription* calls when new devices show up, and are cached
+in the device cache file.
+
+
+Registering as a link partner
+-----------------------------
+hm2mqtt will report to the Homematic interface server (e.g. the CCU) that it is explicitely using 
+each and every datapoint.  This will in turn cause the interface server to register itself as a
+link partner with the remote device.
+
+This means that everytime the remote device sends a status message, it expects the interface
+server to acknowledge this (true bidirectional communication), like it does with any other direct
+link partners.
+
+If the interface server is not linked with the device, it will still receive and process
+status messages. However, there is no bidirectional communication in that case -- if the interface
+server does, for any reason (like RF interference), not receive a status message, the remote
+device will not resend it. This particular behavior is often not well understood.
+
+One side-effect of this is that on the first time that hm2mqtt is started, there may be a
+lot of new pending configs in case devices were not previously linked with the interface
+server. For a CCU, this is for example the case if a device is not used in a ReGa program.
 
 
 MQTT Message format
 --------------------
-The message format accepted and generated is a JSON encoded object with the following members:
+The message format generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
-* ack - when sending messages, hm2mqtt sets this to _true_. If this is set to _true_ on incoming messages, they
-  are ignored, to avoid loops.
 * hm_addr - source HM device address and channel number
- 
-Items which start with PRESS\_ (as of now, PRESS\_SHORT, PRESS\_LONG, PRESS\_CONT) are sent with the MQTT retain 
-flag set to _false_, all others with retain set to _true_. 
+
+Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_.
+_ACTION_s e.G. are press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
 
 
 Usage
@@ -103,18 +144,22 @@ Examples:
   When no XML-RPC request has been received for the specified amount of seconds, another XML-RPC init
   request will be sent to all services. Defaults to 300s.
 
+- hm.devicecachefile
+
+  Path and filename of the device cache file. Defaults to "hm2mqtt.devcache".
+
 - hm.localhost
 
   Local address used when sending init (callback) requests to the XML-RPC server. Default is
   the result of getHostAddress(). Set this when hm2mqtt has trouble determining your local host's
   address automatically. 
   
-  
 See also
 --------
 - Project overview: https://github.com/mqtt-smarthome
-- knx2mqtt - similiar tool for KNX integration 
 - Homematic product information: http://www.homematic.com/
+- Homematic XML-RPC API specification: http://www.eq-3.de/downloads.html (search for "rpc")
+- knx2mqtt - similiar tool for KNX integration 
 - hmcompanion - where most of the HM-side code originates from
 
 
@@ -126,3 +171,29 @@ Changelog
   - ensure numeric values are not sent as strings
   - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
     directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
+* 0.4 - 2015/01/18 - owagner
+  - do proper type handling in outgoing requests, as the previous always-string approach failed with
+    boolean datapoints. Will now cache a type per datapoint. Cache is filled on incoming messages.
+    If a type is unknown on outgoing messages, a getParamsetDescription request is made via XMLRPC
+    and all types are learned for the given channel's datapoint.
+  - The "retain" strategy is now based on whether a datapoint is of type ACTION or not. ACTIONs
+    are set to not retain, all others are set to retain. When incoming messages are learned, it is not
+    possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
+    decision is still made based on the "PRESS_" prefix
+* 0.5 - 2015/01/25 - owagner
+  - adapted to new mqtt-smarthome topic hierarchies: /status/ for reports, /set/ for setting values
+  - prefix/connected is now an enum as suggested by new mqtt-smarthome spec
+  - use QoS 0 for published status reports
+* 0.6 - 2015/01/31 - owagner
+  - completely reworked internal device management. Now properly implements the 
+    listDevices/newDevices/deleteDevices contract recommended by HM's XML-RPC API, and will store local
+    device information in a file (default: hm2mqtt.devcache)
+  - now correctly calls reportValueUsage with count=1 on every channel's datapoint. Note that this may
+    result in a large number of pending configurations if devices weren't previously strongly linked to
+    the XML-RPC server
+  - will now attempt to refetch ReGa names every 10 minutes everytime a name fails to resolve.
+    When a ReGa fetch worked once (i.e. a ReGa is known to be present), failed names will always be
+    published with the retain flag set to false, to avoid the unresolved names ending up in the
+    MQTT broker's persistent storage
+    
+    
