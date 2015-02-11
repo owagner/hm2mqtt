@@ -7,6 +7,6 @@ deploy:
   file: "build/libs/hm2mqtt.jar"
   skip_cleanup: true
   on:
-    repo: mqtt-smarthome/hm2mqtt
+    repo: owagner/hm2mqtt
     tags: true
     all_branches: true
