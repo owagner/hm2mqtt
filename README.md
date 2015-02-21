@@ -172,25 +172,11 @@ See also
 
 Changelog
 ---------
-* 0.2 - 2015/01/02 - owagner
-  - converted to Gradle build
-* 0.3 - 2015/01/06 - owagner
-  - ensure numeric values are not sent as strings
-  - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
-    directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
-* 0.4 - 2015/01/18 - owagner
-  - do proper type handling in outgoing requests, as the previous always-string approach failed with
-    boolean datapoints. Will now cache a type per datapoint. Cache is filled on incoming messages.
-    If a type is unknown on outgoing messages, a getParamsetDescription request is made via XMLRPC
-    and all types are learned for the given channel's datapoint.
-  - The "retain" strategy is now based on whether a datapoint is of type ACTION or not. ACTIONs
-    are set to not retain, all others are set to retain. When incoming messages are learned, it is not
-    possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
-    decision is still made based on the "PRESS_" prefix
-* 0.5 - 2015/01/25 - owagner
-  - adapted to new mqtt-smarthome topic hierarchies: /status/ for reports, /set/ for setting values
-  - prefix/connected is now an enum as suggested by new mqtt-smarthome spec
-  - use QoS 0 for published status reports
+* 0.8 - 2015/02/21 - owagner
+  - now again prefer HM channels over devices when resolving by name. This got broken with the 0.6
+    device cache change
+* 0.7 - 2015/02/11 - owagner
+  - added new option hm.disableReGa to disable all name lookups via ReGa
 * 0.6 - 2015/01/31 - owagner
   - completely reworked internal device management. Now properly implements the 
     listDevices/newDevices/deleteDevices contract recommended by HM's XML-RPC API, and will store local
@@ -202,8 +188,22 @@ Changelog
     When a ReGa fetch worked once (i.e. a ReGa is known to be present), failed names will always be
     published with the retain flag set to false, to avoid the unresolved names ending up in the
     MQTT broker's persistent storage
-* 0.7 - 2015/02/11 - owagner
-  - added new option hm.disableReGa to disable all name lookups via ReGa
-  
-    
-    
+* 0.5 - 2015/01/25 - owagner
+  - adapted to new mqtt-smarthome topic hierarchies: /status/ for reports, /set/ for setting values
+  - prefix/connected is now an enum as suggested by new mqtt-smarthome spec
+  - use QoS 0 for published status reports
+* 0.4 - 2015/01/18 - owagner
+  - do proper type handling in outgoing requests, as the previous always-string approach failed with
+    boolean datapoints. Will now cache a type per datapoint. Cache is filled on incoming messages.
+    If a type is unknown on outgoing messages, a getParamsetDescription request is made via XMLRPC
+    and all types are learned for the given channel's datapoint.
+  - The "retain" strategy is now based on whether a datapoint is of type ACTION or not. ACTIONs
+    are set to not retain, all others are set to retain. When incoming messages are learned, it is not
+    possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
+    decision is still made based on the "PRESS_" prefix
+* 0.3 - 2015/01/06 - owagner
+  - ensure numeric values are not sent as strings
+  - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
+    directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
+* 0.2 - 2015/01/02 - owagner
+  - converted to Gradle build

@@ -102,8 +102,7 @@ public class DeviceInfo implements Serializable
 		{
 			devices=(Map<String, DeviceInfo>)ois.readObject();
 			for(DeviceInfo di:devices.values())
-				if(di.name!=null)
-					devicesByName.put(di.name,di);
+				di.insertIntoNameList();
 			L.info("Read "+devices.size()+" from device cache file "+getDeviceCacheName());
 		}
 		catch(FileNotFoundException e)
@@ -147,16 +146,26 @@ public class DeviceInfo implements Serializable
 
 	private static Map<String,DeviceInfo> devicesByName=new HashMap<>();
 
-	private void setName(String name)
+	private void insertIntoNameList()
 	{
-		this.name=name;
-		if(name!=null)
+		if(name==null)
+			return;
+		/* If a device and a channel have the same name, prefer the channel on the name list */
+		synchronized(devicesByName)
 		{
-			synchronized(devicesByName)
+			DeviceInfo prefDevice=devicesByName.get(name);
+			if(prefDevice!=null)
 			{
-				devicesByName.put(name,this);
+				if(!prefDevice.name.endsWith(":0"))
+					return;
 			}
+			devicesByName.put(name,this);
 		}
 	}
 
+	private void setName(String name)
+	{
+		this.name=name;
+		insertIntoNameList();
+	}
 }
