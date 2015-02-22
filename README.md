@@ -5,11 +5,12 @@ hm2mqtt
   
   Provided under the terms of the MIT license.
 
+
 Overview
 --------
 hm2mqtt is a gateway between a Homematic home automation system and MQTT. 
 
-It's intended as a building block in heterogenous smart home environments where 
+It is intended as a building block in heterogenous smart home environments where 
 an MQTT message broker is used as the centralized message bus.
 See https://github.com/mqtt-smarthome for a rationale and architectural overview.
 
@@ -25,11 +26,11 @@ Dependencies
 * Eclipse Paho: https://www.eclipse.org/paho/clients/java/ (used for MQTT communication)
 * Minimal-JSON: https://github.com/ralfstx/minimal-json (used for JSON creation and parsing)
 
-It is possible to run hm2mqtt directly on a CCU2, using the Embedded JRE which is installed
-in /opt/ejre1.7.0_10/bin
+It is possible to run hm2mqtt directly on a CCU2, using the Embedded JRE. Courtesy of hobbyquaker,
+a CCU2 addon wrapper is available.
 
 [![Build Status](https://travis-ci.org/owagner/hm2mqtt.png)](https://travis-ci.org/owagner/hm2mqtt)
-Automatically built jars can be downloaded from the release page on GitHub at 
+Automatically built jars (and the CCU2 addon) can be downloaded from the release page on GitHub at 
 https://github.com/owagner/hm2mqtt/releases
 
 
