@@ -20,7 +20,9 @@ public class HMXRConnection extends Thread
 	final String serverurl;
 	final String cbid;
 
-	private boolean initFinished, newDevicesFinished=true;
+	private final boolean cuxDkludges;
+
+	private boolean initFinished, newDevicesFinished=true, listDevicesFinished;
 
 	public HMXRConnection(String host,int port,String serverurl,String cbid)
 	{
@@ -28,6 +30,8 @@ public class HMXRConnection extends Thread
 		this.port=port;
 		this.serverurl=serverurl;
 		this.cbid=cbid;
+
+		cuxDkludges=(port==8701);
 
 		// Queue a deinit on shutdown
 		Runtime.getRuntime().addShutdownHook(new Deiniter());
@@ -54,6 +58,24 @@ public class HMXRConnection extends Thread
 
 	public void sendInit()
 	{
+		if(cuxDkludges && !listDevicesFinished)
+		{
+			L.info("CUXD-Mode -- sending explicit listDevices first");
+			HMXRMsg m=new HMXRMsg("listDevices");
+			m.addArg(serverurl);
+			m.addArg(cbid);
+			try
+			{
+				HMXRResponse r=sendRequest(m,false);
+				handleNewDevices(r.rd);
+				listDevicesFinished=true;
+			}
+			catch(Exception e)
+			{
+				L.log(Level.WARNING,"listDevices call to CUXD failed",e);
+			}
+		}
+
 		L.info("Sending init to "+host+":"+port+" with "+serverurl);
 		HMXRMsg m=new HMXRMsg("init");
 		m.addArg(serverurl);

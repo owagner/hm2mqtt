@@ -1,0 +1,28 @@
+#!/bin/sh
+
+ADDON_DIR=/usr/local/addons/hm2mqtt
+RCD_DIR=/usr/local/etc/config/rc.d
+CONFIG_DIR=/usr/local/etc/config
+
+if [ "`mount | grep ubi1:user | grep /usr/local | wc -l`" -eq 0 ]; then
+	mount -t ubifs ubi1:user /usr/local
+fi
+
+mkdir -p $ADDON_DIR
+chmod 755 $ADDON_DIR
+mkdir -p $RCD_DIR
+chmod 755 $RCD_DIR
+
+# copy addon
+cp -af addon/* $ADDON_DIR
+
+# copy startup script
+cp -af rc.d/* $RCD_DIR
+
+# link to website
+ln -sf $ADDON_DIR/www $CONFIG_DIR/addons/www/hm2mqtt
+
+# add menu
+./update_addon hm2mqtt hm2mqtt_addon.cfg
+
+sync

@@ -121,6 +121,11 @@ public class HM
 	{
 		int ix=connections.size();
 		String cbid="CB"+ix;
+		/*
+		 * TODO Workaround against a bug in current CuXD versions
+		 */
+		if(port==8701)
+			cbid="CUxD";
 		HMXRConnection c=new HMXRConnection(host, port, serverurl, cbid);
 		connections.put(cbid,c);
 		L.info("Adding connection "+cbid+" to XML-RPC service at "+host+":"+port);

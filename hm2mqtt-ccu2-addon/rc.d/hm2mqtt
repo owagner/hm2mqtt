@@ -1,0 +1,60 @@
+#!/bin/sh
+
+stop() {
+    echo "Stopping hm2mqtt"
+    logger -t homematic -p user.info "removed hm2mqtt"
+    start-stop-daemon -K -q -p /var/run/hm2mqtt.pid
+    echo "OK"
+}
+
+start() {
+    echo "Starting hm2mqtt"
+    logger -t homematic -p user.info "starting hm2mqtt"
+    start-stop-daemon -S -q -b -m -p /var/run/hm2mqtt.pid --exec /opt/ejre1.7.0_10/bin/java -- -Xmx32m -jar /usr/local/addons/hm2mqtt/hm2mqtt.jar `cat /usr/local/addons/hm2mqtt/options`
+    echo "OK"
+}
+
+info() {
+    echo "Info: <b>hm2mqtt</b>"
+    echo "Info: <a href="https://github.com/owagner/hm2mqtt" target="_blank">Readme</a>"
+    echo "Name: hm2mqtt"
+    echo "Version: 0.7"
+    echo "Operations: uninstall restart"
+    echo "Config-Url: /addons/hm2mqtt"
+    #echo "Update: http://.../hm2mqtt/version"
+}
+
+uninstall() {
+    stop
+    /usr/local/addons/hm2mqtt/update_addon hm2mqtt
+    rm /usr/local/etc/config/addons/www/hm2mqtt
+    rm -r /usr/local/addons/hm2mqtt
+    rm /usr/local/etc/config/rc.d/hm2mqtt
+    logger -t homematic -p user.info "uninstalled hm2mqtt"
+}
+
+case "$1" in
+  ""|start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|reload)
+	stop
+	sleep 2
+	start
+	;;
+  uninstall)
+    uninstall
+    ;;
+  info)
+    info
+    ;;
+  *)
+    echo "Usage: hm2mqtt {start|stop|restart|info|uninstall}" >&2
+    exit 1
+    ;;
+esac
+
+exit $?

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>hm2mqtt settings</title>
+<style>
+  body {
+    font: 10pt Verdana;
+    min-width: 640px;
+
+  }
+  label {
+    display: inline-block;
+    width: 16em;
+    height:24px;
+  }
+
+  #header {
+    width: 100% !important;
+    background-color: #192c6e;
+    color: white;
+    font-size: 20px;
+    padding: 6px 6px 3px 6px;
+    display: table-cell;
+    vertical-align: middle;
+
+  }
+  .ruler {
+    background-color: #192c6e;
+    height: 2px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  #container, #invalid_session {
+    display: none;
+  }
+  #submit, #start, #stop {
+    background-color: #89989b;
+    color: black;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: solid 1px #000000;
+    margin: 5px;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-left: 10px;
+    background-image: url(/ise/img/gradientButton50px.png);
+    height: 40px;
+    line-height: 30px;
+    width: 150px;
+    /* padding-left: 5px; */
+    padding-right: 5px;
+    margin-right: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+</style>
+<script src="jquery-2.1.3.min.js"></script>
+<script>
+  var params = {};
+  $(document).ready(function () {
+    $('#enable_options').change(function () {
+      if ($(this).is(':checked')) {
+        $('#options').removeAttr('disabled');
+      } else {
+        $('#options').attr('disabled', true);
+      }
+    })
+    $('#start').click(function () {
+      $.get('start.cgi' + location.search, function (data, success) {
+        alert(data);
+      });
+    });
+
+    $('#stop').click(function () {
+      $.get('stop.cgi' + location.search, function (data, success) {
+        alert(data);
+      });
+    });
+
+    $('#submit').click(function () {
+      $.ajax({
+        method: 'post',
+        url: 'setconfig.cgi' + location.search,
+        data: $('#options').val(),
+        success: function (data) {
+          alert(data);
+        }
+      });
+    });
+
+    $.get('getconfig.cgi' + location.search, function (data) {
+      if (data.match(/^error/)) {
+        $('#invalid_session').show();
+        return;
+      }
+      $('#container').show();
+      var obj = {};
+      params = data.split(' ');
+      for (var i = 0; i < params.length; i++) {
+        var tmp = params[i].split('=');
+        if (tmp[0] && tmp[1]) obj[tmp[0]] = tmp[1];
+      }
+      params = obj;
+      $('#options').val(data);
+
+      for (var param in params) {
+        if (param == 'hm.host') continue;
+        var $this = $('[id="' + param + '"]');
+        if ($this.attr('type') == 'checkbox') {
+          if (params[param]) {
+            $this.attr('checked', true);
+          } else {
+            $this.removeAttr('checked');
+          }
+        } else {
+          $this.val(params[param]);
+        }
+      }
+
+      if (!params['mqtt.topic']) $('[id="mqtt.topic"]').val('hm/');
+
+      var hmhost = params['hm.host'].split(',');
+
+      if (hmhost.indexOf('127.0.0.1:2000') !== -1) {
+        $('#hs485d').attr('checked', true);
+        ifaces.hs485d = true;
+      } else {
+        $('#hs485d').removeAttr('checked');
+        ifaces.hs485d = false;
+      }
+
+      if (hmhost.indexOf('127.0.0.1:2001') !== -1) {
+        $('#rfd').attr('checked', true);
+        ifaces.rfd = true;
+      } else {
+        $('#rfd').removeAttr('checked');
+        ifaces.rfd = false;
+      }
+
+      if (hmhost.indexOf('127.0.0.1:8701') !== -1) {
+        $('#cuxd').attr('checked', true);
+        ifaces.cuxd = true;
+      } else {
+        $('#cuxd').removeAttr('checked');
+        ifaces.cuxd = false;
+      }
+
+    }).fail(function () {
+        alert('an unexpected error occured, please try reloading the page');
+    });
+
+    $('input.config').change(function () {
+      var $this = $(this);
+      if ($this.attr('id')) params[$this.attr('id')] = $this.attr('type') === 'checkbox' ? $this.is(':checked') : $this.val();
+      //console.log(params);
+      setOptions();
+    });
+
+    var ifaces = {};
+    $('input.iface').change(function () {
+      var $this = $(this);
+      ifaces[$this.attr('id')] = $this.is(':checked');
+      delete params['hm.host'];
+      if (ifaces.rfd || ifaces.hs485d || ifaces.cuxd) {
+        var tmp = [];
+        for (var iface in ifaces) {
+          if (ifaces[iface]) {
+            switch (iface) {
+              case 'rfd':
+                    tmp.push('127.0.0.1:2001');
+                    break;
+              case 'hs485d':
+                    tmp.push('127.0.0.1:2000');
+                    break;
+              case 'cuxd':
+                    tmp.push('127.0.0.1:8701');
+                    break;
+            }
+          }
+        }
+        params['hm.host'] = tmp.join(',');
+      }
+      setOptions();
+    });
+
+    function setOptions() {
+      var options = [];
+      for (var param in params) {
+        if (param == 'hm.disableReGa' && params[param] === false) continue;
+         if (param == 'mqtt.topic' && params[param] === '') {
+          $('[id="mqtt.topic"]').val('hm/');
+          continue;
+         }
+
+        // todo escape/quote
+        // options.push('"' + param + '=' + params[param] + '"');
+        options.push(param + '=' + params[param]);
+      }
+      $('#options').val(options.join(' '));
+    }
+  });
+
+</script>
+<div id="container">
+<div id="header"><span>hm2mqtt settings</span></div>
+<div class="ruler"></div>
+<label for="mqtt.server">MQTT Broker URI</label><input class="config" name="mqtt.server" id="mqtt.server" size="32"> (example: <code>tcp://192.168.0.23:1883</code>)<br>
+<label for="mqtt.topic">Topic prefix</label><input class="config" name="mqtt.topic" id="mqtt.topic" size="32"><br>
+  <div class="ruler"></div>
+  <label for="submit">Save settings</label><input value="Save Settings" id="submit" name="submit" type="button"><br>
+  <div class="ruler"></div>
+<label for="rfd">Enable rfd</label><input class="iface" type="checkbox" name="rfd" id="rfd" value="true"><br>
+<label for="hs485d">Enable hs485d (Wired)</label><input class="iface" type="checkbox" name="hs485d" id="hs485d" value="true"><br>
+<label for="cuxd">Enable CUxD</label><input class="iface" type="checkbox" name="cuxd" id="cuxd"><br>
+<label for="hm.disableReGa">Disable ReGa Name Sync</label><input class="config" type="checkbox" id="hm.disableReGa" name="hm.disableReGa" value="true"><br>
+  <div class="ruler"></div>
+  <label>Process Control</label>
+  <input type="button" value="Start Daemon" id="start">
+  <input type="button" value="Stop Daemon" id="stop">
+<br>
+  <div style="width:100%">
+    <div class="ruler"></div>
+<label style="float:left" for="options"><small>Expert Settings</small></label><div style="margin-left: 16em"><input style="float:left" id="enable_options" type="checkbox"></div><div style="margin-left: 18em; margin-right:6px"><input disabled="disabled" type="text" style="width: 100%;" id="options"></div>
+  </div>
+  <div class="ruler"></div>
+  &copy; 2015 Oliver Wagner <a href="mailto:owagner@tellerulam.com">owagner@tellerulam.com</a> <a href="https://github.com/owagner/hm2mqtt">https://github.com/owagner/hm2mqtt</a>
+  <br>Provided under the terms of the <a href="https://raw.githubusercontent.com/owagner/hm2mqtt/master/LICENSE">MIT license</a>.
+</div>
+<div id="invalid_session">
+  <h3 style="color:red">Fehler: Keine gültige Session</h3>
+  <a href="/">Zurück zum Login</a>
+</div>
