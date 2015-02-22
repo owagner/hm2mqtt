@@ -1,5 +1,5 @@
 language: java
-before_deploy: "gradle jar"
+before_deploy: "gradle jar addon"
 deploy:
   provider: releases
   api_key:
