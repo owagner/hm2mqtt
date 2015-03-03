@@ -15,6 +15,7 @@ chmod 755 $RCD_DIR
 
 # copy addon
 cp -af addon/* $ADDON_DIR
+chmod 666 addon/options
 
 # copy startup script
 cp -af rc.d/* $RCD_DIR
@@ -23,6 +24,6 @@ cp -af rc.d/* $RCD_DIR
 ln -sf $ADDON_DIR/www $CONFIG_DIR/addons/www/hm2mqtt
 
 # add menu
-./update_addon hm2mqtt hm2mqtt_addon.cfg
+./addon/update_addon hm2mqtt hm2mqtt_addon.cfg
 
 sync
