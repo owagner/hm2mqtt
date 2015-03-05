@@ -61,7 +61,7 @@ public class MQTTHandler
 
 	private boolean shouldBeConnected;
 
-	void processSet(String topic,MqttMessage msg)
+	void processSetGet(String topic,MqttMessage msg,boolean isSet)
 	{
 		if(msg.isRetained())
 		{
@@ -81,10 +81,13 @@ public class MQTTHandler
 				di=DeviceInfo.getByAddress(address);
 			if(di==null)
 			{
-				L.warning("Got set to unknown name/address "+address+", ignoring");
+				L.warning("Got "+(isSet?"set":"get")+" to unknown name/address "+address+", ignoring");
 				return;
 			}
-			HM.setValue(di,datapoint,data);
+			if(isSet)
+				HM.setValue(di,datapoint,data);
+			else
+				HM.getValue(di,address,datapoint,data);
 		}
 	}
 
@@ -92,7 +95,9 @@ public class MQTTHandler
 	{
 		topic=topic.substring(topicPrefix.length(),topic.length());
 		if(topic.startsWith("set/"))
-			processSet(topic.substring(4),msg);
+			processSetGet(topic.substring(4),msg,true);
+		else if(topic.startsWith("get/"))
+			processSetGet(topic.substring(4),msg,false);
 	}
 
 	private void doConnect()
@@ -160,10 +165,12 @@ public class MQTTHandler
 		Main.t.schedule(new StateChecker(),30*1000,30*1000);
 	}
 
-	private void doPublish(String name, Object val, String addr,boolean retain)
+	private void doPublish(String name, Object val, String addr,boolean retain,String reqid)
 	{
 		JsonObject jso=new JsonObject();
 		jso.add("hm_addr",addr);
+		if(reqid!=null)
+			jso.add("hm_getid",reqid);
 		if(val instanceof BigDecimal)
 			jso.add("val",((BigDecimal)val).doubleValue());
 		else if(val instanceof Integer)
@@ -188,9 +195,9 @@ public class MQTTHandler
 		}
 	}
 
-	public static void publish(String name, Object val, String src,boolean retain)
+	public static void publish(String name, Object val, String src,boolean retain,String reqid)
 	{
-		instance.doPublish(name,val,src,retain);
+		instance.doPublish(name,val,src,retain,reqid);
 	}
 
 }

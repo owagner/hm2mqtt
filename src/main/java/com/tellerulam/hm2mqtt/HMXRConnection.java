@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.*;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.*;
 
 public class HMXRConnection extends Thread
@@ -67,7 +68,7 @@ public class HMXRConnection extends Thread
 			try
 			{
 				HMXRResponse r=sendRequest(m,false);
-				handleNewDevices(r.rd);
+				handleNewDevices(r.getData());
 				listDevicesFinished=true;
 			}
 			catch(Exception e)
@@ -181,8 +182,41 @@ public class HMXRConnection extends Thread
 		else
 			topic=di.name;
 
+		MQTTHandler.publish(topic+"/"+datapoint, val, address, retain, null);
+	}
 
-		MQTTHandler.publish(topic+"/"+datapoint, val, address, retain);
+	static private Executor longRunningRequestDispatcher=Executors.newCachedThreadPool();
+
+	void getValue(final DeviceInfo di,final String topic,final String datapoint,final String value)
+	{
+		longRunningRequestDispatcher.execute(new Runnable(){
+			@Override
+			public void run()
+			{
+				try
+				{
+					HMXRMsg m=new HMXRMsg("getValue");
+					m.addArg(di.address);
+					m.addArg(datapoint);
+					HMXRResponse response=sendRequest(m);
+					if(response.isFailedRequest())
+						L.log(Level.INFO,"getValue on "+di+"/"+datapoint+" failed with "+response.getFaultCode()+": "+response.getFaultString());
+					else
+					{
+						// We don't want to retain ACTION one-shot keypress notifications
+						HMValueTypes type=di.getTypeForValue(datapoint);
+						boolean retain=(type!=HMValueTypes.ACTION);
+						MQTTHandler.publish(topic+"/"+datapoint, response.getData().get(0), di.address, retain, value);
+					}
+				}
+				catch(IOException | ParseException e)
+				{
+					L.log(Level.WARNING,"Error when getting value "+datapoint+" from "+di,e);
+				}
+
+			}
+		});
+
 	}
 
 	void setValue(DeviceInfo di, String datapoint, String value)

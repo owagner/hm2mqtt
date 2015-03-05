@@ -149,6 +149,17 @@ public class HM
 		c.setValue(di,datapoint,value);
 	}
 
+	public static void getValue(DeviceInfo di,String topic,String datapoint,String value)
+	{
+		HMXRConnection c=instance.connections.get(di.ifid);
+		if(c==null)
+		{
+			instance.L.warning("Unable to find a HM connection for device "+di);
+			return;
+		}
+		c.getValue(di,topic,datapoint,value);
+	}
+
 	public static Map<String, HMValueTypes> obtainValueTypes(String address, String ifid) throws IOException, ParseException
 	{
 		HMXRConnection c=instance.connections.get(ifid);

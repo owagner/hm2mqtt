@@ -24,11 +24,41 @@ public class HMXRResponse
 		return (new BigInteger(bi)).intValue();
 	}
 
-	final List<Object> rd=new ArrayList<Object>();
+	private final List<Object> rd=new ArrayList<Object>();
 
 	public List<Object> getData()
 	{
 		return rd;
+	}
+
+	private int faultCode;
+	private String faultString;
+	public boolean isFailedRequest()
+	{
+		if(rd.size()==1)
+		{
+			if(rd.get(0) instanceof Map)
+			{
+				@SuppressWarnings("unchecked")
+				Map<String,Object> m=(Map<String, Object>)rd.get(0);
+				if(m.get("faultCode")!=null)
+				{
+					faultCode=((Number)m.get("faultCode")).intValue();
+					faultString=m.get("faultString").toString();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public int getFaultCode()
+	{
+		return faultCode;
+	}
+	public String getFaultString()
+	{
+		return faultString;
 	}
 
 	private Object readRpcValue() throws UnsupportedEncodingException, ParseException

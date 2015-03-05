@@ -64,12 +64,12 @@ public class XMLRPCServer implements Runnable
 		lastRequest=System.currentTimeMillis();
 		if("event".equals(r.methodName))
 		{
-			HM.dispatchEvent(r.rd);
+			HM.dispatchEvent(r.getData());
 			os.write(bEmptyString);
 		}
 		else if("listDevices".equals(r.methodName))
 		{
-			HMXRMsg knownDevices=HM.dispatchListDevices(r.rd);
+			HMXRMsg knownDevices=HM.dispatchListDevices(r.getData());
 			if(knownDevices!=null)
 				os.write(knownDevices.prepareData());
 			else
@@ -77,12 +77,12 @@ public class XMLRPCServer implements Runnable
 		}
 		else if("newDevices".equals(r.methodName))
 		{
-			HM.dispatchNewDevices(r.rd);
+			HM.dispatchNewDevices(r.getData());
 			os.write(bEmptyArray);
 		}
 		else if("deleteDevices".equals(r.methodName))
 		{
-			HM.dispatchDeleteDevices(r.rd);
+			HM.dispatchDeleteDevices(r.getData());
 			os.write(bEmptyArray);
 		}
 		else if("system.listMethods".equals(r.methodName))
@@ -104,7 +104,7 @@ public class XMLRPCServer implements Runnable
 
 			List<Object> result=new ArrayList<Object>();
 
-			for(Object o:(List<?>)r.rd.get(0))
+			for(Object o:(List<?>)r.getData().get(0))
 			{
 				Map<?,?> call=(Map<?,?>)o;
 				String method=call.get("methodName").toString();

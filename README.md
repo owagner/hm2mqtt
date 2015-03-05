@@ -43,7 +43,8 @@ The topics generated and accepted are of the form
 
 `prefix/function/channel/datapoint`
 
-The *function* is _status_ for published status reports and _set_ for inbound change requests.
+The *function* is _status_ for published status reports, _set_ for inbound change requests
+or _get_ to synchronously and activly request a value from a device.
 
 The *channel* is either the raw address or a name resolved by querying the ReGa.
 
@@ -95,6 +96,8 @@ The message format generated is a JSON encoded object with the following members
 
 * val - the actual value, in numeric format
 * hm_addr - source HM device address and channel number
+* hm_getid - will be set in responses to get requests and contains the payload from the
+             get message
 
 Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_.
 _ACTION_s e.G. are press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
@@ -173,6 +176,9 @@ See also
 
 Changelog
 ---------
+* 0.9 - 2015/03/05 - owagner
+  - added syslog handler, which is active by default. Configuration can be overriden using JUL properties.
+  - added /get/ function
 * 0.8 - 2015/02/21 - owagner
   - now again prefer HM channels over devices when resolving by name. This got broken with the 0.6
     device cache change
