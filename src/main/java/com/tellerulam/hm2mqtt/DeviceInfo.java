@@ -102,7 +102,9 @@ public class DeviceInfo implements Serializable
 		{
 			devices=(Map<String, DeviceInfo>)ois.readObject();
 			for(DeviceInfo di:devices.values())
+			{
 				di.insertIntoNameList();
+			}
 			L.info("Read "+devices.size()+" from device cache file "+getDeviceCacheName());
 		}
 		catch(FileNotFoundException e)
@@ -128,6 +130,7 @@ public class DeviceInfo implements Serializable
 				di.setName(ReGaDeviceNameResolver.getNameForAddress(di.address));
 			}
 		}
+		System.out.println(devicesByName);
 	}
 
 	/*
@@ -156,7 +159,7 @@ public class DeviceInfo implements Serializable
 			DeviceInfo prefDevice=devicesByName.get(name);
 			if(prefDevice!=null)
 			{
-				if(!prefDevice.name.endsWith(":0"))
+				if(!prefDevice.address.endsWith(":0"))
 					return;
 			}
 			devicesByName.put(name,this);

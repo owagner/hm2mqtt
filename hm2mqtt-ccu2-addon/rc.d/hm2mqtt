@@ -18,7 +18,7 @@ info() {
     echo "Info: <b>hm2mqtt</b>"
     echo "Info: <a href="https://github.com/owagner/hm2mqtt" target="_blank">Readme</a>"
     echo "Name: hm2mqtt"
-    echo "Version: 0.7"
+    echo "Version: 0.9"
     echo "Operations: uninstall restart"
     echo "Config-Url: /addons/hm2mqtt"
     echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-ccu2-addon/VERSION"
