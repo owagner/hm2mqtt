@@ -14,8 +14,8 @@ mkdir -p $RCD_DIR
 chmod 755 $RCD_DIR
 
 # copy addon
-cp -af addon/* $ADDON_DIR
 chmod 666 addon/options
+cp -af addon/* $ADDON_DIR
 
 # copy startup script
 cp -af rc.d/* $RCD_DIR
