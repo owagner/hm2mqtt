@@ -18,10 +18,9 @@ public class XMLRPCServer implements Runnable
 		ss.setReuseAddress(true);
 		ss.bind(null);
 		new XMLRPCAcceptor().start();
-        InetAddress addr=InetAddress.getLocalHost();
         String localhost=System.getProperty("hm2mqtt.hm.localhost");
         if(localhost==null)
-        	localhost=addr.getHostAddress();
+        	localhost=InetAddress.getLocalHost().getHostAddress();
         return "binary://"+localhost+":"+ss.getLocalPort();
 	}
 
