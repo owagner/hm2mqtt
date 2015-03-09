@@ -176,6 +176,9 @@ See also
 
 Changelog
 ---------
+* 0.10 - 2015/03/09 - owagner
+  - do not call InetAddress.getLocalHost() when a local host is specified via hm.localhost, as this triggers
+    an exception on the CCU2
 * 0.9 - 2015/03/05 - owagner
   - added syslog handler, which is active by default. Configuration can be overriden using JUL properties.
   - added /get/ function
