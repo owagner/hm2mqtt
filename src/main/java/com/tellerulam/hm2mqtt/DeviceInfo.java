@@ -11,13 +11,14 @@ public class DeviceInfo implements Serializable
 	public final String ifid;
 	public String name;
 
-	public Map<String,HMValueTypes> valueTypes;
+	public Map<String,DatapointInfo> values;
+	public Map<String,DatapointInfo> params;
 
-	public HMValueTypes getTypeForValue(String valueName)
+	public DatapointInfo getValueDatapointInfo(String valueName)
 	{
-		if(valueTypes==null)
+		if(values==null)
 			return null;
-		return valueTypes.get(valueName);
+		return values.get(valueName);
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public class DeviceInfo implements Serializable
 			{
 				di.insertIntoNameList();
 			}
-			L.info("Read "+devices.size()+" from device cache file "+getDeviceCacheName());
+			L.info("Read "+devices.size()+" devices from device cache file "+getDeviceCacheName());
 		}
 		catch(FileNotFoundException e)
 		{
@@ -130,13 +131,12 @@ public class DeviceInfo implements Serializable
 				di.setName(ReGaDeviceNameResolver.getNameForAddress(di.address));
 			}
 		}
-		System.out.println(devicesByName);
 	}
 
 	/*
 	 * Here be dragons
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private DeviceInfo(String address, int version, String ifid)
 	{

@@ -160,6 +160,7 @@ public class HM
 		c.getValue(di,topic,datapoint,value);
 	}
 
+	/*
 	public static Map<String, HMValueTypes> obtainValueTypes(String address, String ifid) throws IOException, ParseException
 	{
 		HMXRConnection c=instance.connections.get(ifid);
@@ -170,5 +171,6 @@ public class HM
 		}
 		return c.getParamsetDescription(address,"VALUES");
 	}
+	*/
 
 }

@@ -165,12 +165,15 @@ public class MQTTHandler
 		Main.t.schedule(new StateChecker(),30*1000,30*1000);
 	}
 
-	private void doPublish(String name, Object val, String addr,boolean retain,String reqid)
+	private void doPublish(
+		String name,
+		Object val,
+		boolean retain,
+		String... more_fields
+	)
 	{
 		JsonObject jso=new JsonObject();
-		jso.add("hm_addr",addr);
-		if(reqid!=null)
-			jso.add("hm_getid",reqid);
+
 		if(val instanceof BigDecimal)
 			jso.add("val",((BigDecimal)val).doubleValue());
 		else if(val instanceof Integer)
@@ -179,6 +182,11 @@ public class MQTTHandler
 			jso.add("val",((Boolean)val).booleanValue()?1:0);
 		else
 			jso.add("val",val.toString());
+
+		assert(more_fields.length%2==0);
+		for(int mfix=0;mfix<more_fields.length;mfix+=2)
+			jso.add(more_fields[mfix],more_fields[mfix+1]);
+
 		String txtmsg=jso.toString();
 		MqttMessage msg=new MqttMessage(txtmsg.getBytes(StandardCharsets.UTF_8));
 		msg.setQos(0);
@@ -195,9 +203,9 @@ public class MQTTHandler
 		}
 	}
 
-	public static void publish(String name, Object val, String src,boolean retain,String reqid)
+	public static void publish(String name, Object val, boolean retain,String... more_fields)
 	{
-		instance.doPublish(name,val,src,retain,reqid);
+		instance.doPublish(name,val,retain,more_fields);
 	}
 
 }

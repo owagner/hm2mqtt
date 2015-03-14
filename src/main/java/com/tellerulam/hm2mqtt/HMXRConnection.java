@@ -147,6 +147,31 @@ public class HMXRConnection extends Thread
 
 	private final Set<String> warnedUnknownAddress=new HashSet<String>();
 
+	private void publish(String topic,DatapointInfo dpi,Object val,boolean retain,String address,String getID)
+	{
+		List<String> moreFields=new ArrayList<>();
+
+		moreFields.add("hm_addr");
+		moreFields.add(address);
+		if(getID!=null)
+		{
+			moreFields.add("hm_getid");
+			moreFields.add(getID);
+		}
+		if(dpi.unit!=null && dpi.unit.length()!=0)
+		{
+			moreFields.add("hm_unit");
+			moreFields.add(dpi.unit);
+		}
+		if(dpi.type==HMValueTypes.ENUM)
+		{
+			moreFields.add("hm_enum");
+			moreFields.add(dpi.enumValues[((Integer)val).intValue()]);
+		}
+
+		MQTTHandler.publish(topic+"/"+dpi.name, val, retain, moreFields.toArray(new String[moreFields.size()]));
+	}
+
 	void handleEvent(List<?> parms)
 	{
 		String address=parms.get(1).toString();
@@ -165,8 +190,8 @@ public class HMXRConnection extends Thread
 			return;
 		}
 		// We don't want to retain ACTION one-shot keypress notifications
-		HMValueTypes type=di.getTypeForValue(datapoint);
-		boolean retain=(type!=HMValueTypes.ACTION);
+		DatapointInfo dpi=di.getValueDatapointInfo(datapoint);
+		boolean retain=!dpi.isAction();
 
 		if(di.name==null)
 		{
@@ -182,7 +207,7 @@ public class HMXRConnection extends Thread
 		else
 			topic=di.name;
 
-		MQTTHandler.publish(topic+"/"+datapoint, val, address, retain, null);
+		publish(topic+"/"+datapoint, dpi, val, retain, di.address, null);
 	}
 
 	static private Executor longRunningRequestDispatcher=Executors.newCachedThreadPool();
@@ -204,19 +229,16 @@ public class HMXRConnection extends Thread
 					else
 					{
 						// We don't want to retain ACTION one-shot keypress notifications
-						HMValueTypes type=di.getTypeForValue(datapoint);
-						boolean retain=(type!=HMValueTypes.ACTION);
-						MQTTHandler.publish(topic+"/"+datapoint, response.getData().get(0), di.address, retain, value);
+						DatapointInfo dpi=di.getValueDatapointInfo(datapoint);
+						publish(topic+"/"+datapoint, dpi, response.getData().get(0), !dpi.isAction(), di.address, value);
 					}
 				}
 				catch(IOException | ParseException e)
 				{
 					L.log(Level.WARNING,"Error when getting value "+datapoint+" from "+di,e);
 				}
-
 			}
 		});
-
 	}
 
 	void setValue(DeviceInfo di, String datapoint, String value)
@@ -227,13 +249,13 @@ public class HMXRConnection extends Thread
 
 		try
 		{
-			HMValueTypes type=di.getTypeForValue(datapoint);
-			if(type==null)
+			DatapointInfo dpi=di.getValueDatapointInfo(datapoint);
+			if(dpi==null)
 			{
-				L.info("No type known for "+di.address+"."+datapoint+", falling back to string");
-				type=HMValueTypes.STRING;
+				L.info("Unknown datapoint "+di.address+"."+datapoint+", ignoring set");
+				return;
 			}
-			switch(type)
+			switch(dpi.type)
 			{
 				case FLOAT:
 					m.addArg(Double.valueOf(value));
@@ -290,11 +312,15 @@ public class HMXRConnection extends Thread
 			List<String> paramSets=(List<String>)dev.get("PARAMSETS");
 			if(paramSets.contains("VALUES"))
 			{
-				di.valueTypes=getParamsetDescription(di.address, "VALUES");
-				for(String dp:di.valueTypes.keySet())
+				di.values=getParamsetDescription(di.address, "VALUES");
+				for(String dp:di.values.keySet())
 				{
 					reportValueUsage(di.address,dp,Integer.valueOf(1));
 				}
+			}
+			if(paramSets.contains("MASTER"))
+			{
+				di.params=getParamsetDescription(di.address, "MASTER");
 			}
 		}
 		newDevicesFinished=true;
@@ -337,10 +363,10 @@ public class HMXRConnection extends Thread
 
 
 	@SuppressWarnings("unchecked")
-	public Map<String, HMValueTypes> getParamsetDescription(String address, String which) throws IOException, ParseException
+	public Map<String, DatapointInfo> getParamsetDescription(String address, String which) throws IOException, ParseException
 	{
 		L.fine("Obtaining paramSetDescription for "+which+" from "+address);
-		Map<String, HMValueTypes> res=new HashMap<>();
+		Map<String, DatapointInfo> res=new HashMap<>();
 		HMXRMsg m=new HMXRMsg("getParamsetDescription");
 		m.addArg(address);
 		m.addArg(which);
@@ -349,13 +375,12 @@ public class HMXRConnection extends Thread
 		{
 			if(d instanceof Map)
 			{
-				for(Map.Entry<String,Map<String,String>> me:((Map<String,Map<String,String>>)d).entrySet())
+				for(Map.Entry<String,Map<String,Object>> me:((Map<String,Map<String,Object>>)d).entrySet())
 				{
 					String datapoint=me.getKey();
-					Map<String,String> paramset=me.getValue();
-					String type=paramset.get("TYPE");
-					HMValueTypes hmtype=HMValueTypes.valueOf(type);
-					res.put(datapoint,hmtype);
+					Map<String,Object> paramset=me.getValue();
+					DatapointInfo di=DatapointInfo.constructFromParamsetDescription(paramset);
+					res.put(datapoint,di);
 				}
 			}
 		}

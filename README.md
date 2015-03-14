@@ -98,6 +98,8 @@ The message format generated is a JSON encoded object with the following members
 * hm_addr - source HM device address and channel number
 * hm_getid - will be set in responses to get requests and contains the payload from the
              get message
+* hm_unit - has the unit specifier from the ParamsetDescription of the datapoint
+* hm_enum - has the textual enum value from the ParamsetDescription of the datapoint, for ENUM types
 
 Datapoints with type _ACTION_ are sent with the MQTT retain  flag set to _false_, all others with retain set to _true_.
 _ACTION_s e.G. are press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
@@ -106,7 +108,7 @@ _ACTION_s e.G. are press reports (PRESS_SHORT, PRESS_LONG, PRESS_CONT)
 Usage
 -----
 
-Configuration options can either be specified on the command line, or as system properties with the prefix "knx2mqtt".
+Configuration options can either be specified on the command line, or as system properties with the prefix "hm2mqtt".
 Examples:
 
     java -jar hm2mqtt.jar hm.ip=192.168.0.10
@@ -176,6 +178,8 @@ See also
 
 Changelog
 ---------
+* 0.11 - 2015/03/14 - owagner
+  - include "hm_unit" and "hm_enum" in published messages, when applicable
 * 0.10 - 2015/03/09 - owagner
   - do not call InetAddress.getLocalHost() when a local host is specified via hm.localhost, as this triggers
     an exception on the CCU2
