@@ -111,9 +111,9 @@ Usage
 Configuration options can either be specified on the command line, or as system properties with the prefix "hm2mqtt".
 Examples:
 
-    java -jar hm2mqtt.jar hm.ip=192.168.0.10
+    java -jar hm2mqtt.jar hm.host=192.168.0.10
     
-    java -Dhm.hm.ip=192.168.0.10 -jar hm2mqtt.jar
+    java -Dhm.hm.host=192.168.0.10 -jar hm2mqtt.jar
     
 ### Available options:    
 
