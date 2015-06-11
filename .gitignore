@@ -1,5 +1,5 @@
-/eclipsebuild/
-/lib/
-/build/
-/bin/
-/hm2mqtt.devcache
+*.iml
+.idea/
+.gradle/
+build/
+hm2mqtt.devcache
