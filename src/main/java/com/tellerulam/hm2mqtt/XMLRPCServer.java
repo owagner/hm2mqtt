@@ -16,7 +16,13 @@ public class XMLRPCServer implements Runnable
 	{
 		ss=new ServerSocket();
 		ss.setReuseAddress(true);
-		ss.bind(null);
+		String bindaddress=System.getProperty("hm2mqtt.hm.bindaddress");
+		if(bindaddress == null)
+			ss.bind(null);
+		else{
+			String[] parts = bindaddress.split(":");
+			ss.bind(new InetSocketAddress(parts[0], Integer.parseInt(parts[1])));
+		}
 		new XMLRPCAcceptor().start();
         String localhost=System.getProperty("hm2mqtt.hm.localhost");
         if(localhost==null)

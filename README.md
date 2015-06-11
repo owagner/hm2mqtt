@@ -157,6 +157,13 @@ Examples:
   Local address used when sending init (callback) requests to the XML-RPC server. Default is
   the result of getHostAddress(). Set this when hm2mqtt has trouble determining your local host's
   address automatically.
+
+- hm.bindaddress
+
+  Local address and port used to listen for callback requests. If not specified hm2mqtt will pick a valid local address
+  and a random port
+
+  Example: Listen on all local adresses on port 3333: 0.0.0.0:3333
   
 - hm.disableReGa
 
@@ -179,6 +186,7 @@ Changelog
   - generate "ts" and "lc" timestamp fields in published messages
   - no longer automatically register with reportValueUsage
   - add a command channel and bind/unbind commands as an reportValueUsage interface
+  - new option "hm.bindaddress"
 * 0.11 - 2015/03/14 - owagner
   - include "hm_unit" and "hm_enum" in published messages, when applicable
 * 0.10 - 2015/03/09 - owagner
