@@ -36,15 +36,13 @@ https://github.com/owagner/hm2mqtt/releases
 
 Device names and topic structure
 --------------------------------
-hm2mqtt will try to read device and channel names from the specified HM hosts using the ReGa TCL interface
-on port 8181. If this succeeds, channel names will be resolved into symbolic names before publishing.
+hm2mqtt will try to read device and channel names from the specified HM hosts using the ReGa TCL interface on port 8181. If this succeeds, channel names will be resolved into symbolic names before publishing.
 
 The topics generated and accepted are of the form
 
 `prefix/function/channel/datapoint`
 
-The *function* is _status_ for published status reports, _set_ for inbound change requests
-or _get_ to synchronously and activly request a value from a device.
+The *function* is _status_ for published status reports, _set_ for inbound change requests, _get_ to synchronously and activly request a value from a device, and _command_ to send commands.
 
 The *channel* is either the raw address or a name resolved by querying the ReGa.
 
@@ -72,8 +70,8 @@ in the device cache file.
 
 Registering as a link partner
 -----------------------------
-hm2mqtt will report to the Homematic interface server (e.g. the CCU) that it is explicitely using 
-each and every datapoint.  This will in turn cause the interface server to register itself as a
+An application (like hm2mqtt) can tell an interface server (rfd/hs485d) that it is activly
+using a datapoint. This will in turn cause the interface server to register itself as a
 link partner with the remote device.
 
 This means that everytime the remote device sends a status message, it expects the interface
@@ -85,9 +83,7 @@ status messages. However, there is no bidirectional communication in that case -
 server does, for any reason (like RF interference), not receive a status message, the remote
 device will not resend it. This particular behavior is often not well understood.
 
-One side-effect of this is that on the first time that hm2mqtt is started, there may be a
-lot of new pending configs in case devices were not previously linked with the interface
-server. For a CCU, this is for example the case if a device is not used in a ReGa program.
+hm2mqtt will not automatically register itself as a user of a datapoint. You can do this manually by publishing to the bind/unbind command, or e.g. using https://github.com/hobbyquaker/homematic-manager
 
 
 MQTT Message format
@@ -95,6 +91,7 @@ MQTT Message format
 The message format generated is a JSON encoded object with the following members:
 
 * val - the actual value, in numeric format
+* ts - timestamp in milliseconds when this message was generated
 * hm_addr - source HM device address and channel number
 * hm_getid - will be set in responses to get requests and contains the payload from the
              get message
@@ -178,6 +175,10 @@ See also
 
 Changelog
 ---------
+* 0.12 - 2015/06/11 - owagner
+  - generate "ts" and "lc" timestamp fields in published messages
+  - no longer automatically register with reportValueUsage
+  - add a command channel and bind/unbind commands as an reportValueUsage interface
 * 0.11 - 2015/03/14 - owagner
   - include "hm_unit" and "hm_enum" in published messages, when applicable
 * 0.10 - 2015/03/09 - owagner

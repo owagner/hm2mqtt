@@ -149,8 +149,17 @@ public class HMXRConnection extends Thread
 
 	private void publish(String topic,DatapointInfo dpi,Object val,boolean retain,String address,String getID)
 	{
+		long ts=System.currentTimeMillis();
 		List<String> moreFields=new ArrayList<>();
-
+		if(!val.equals(dpi.lastValue))
+		{
+			dpi.lastValue=val;
+			dpi.lastValueTime=ts;
+		}
+		moreFields.add("ts");
+		moreFields.add(String.valueOf(ts));
+		moreFields.add("lc");
+		moreFields.add(String.valueOf(dpi.lastValueTime));
 		moreFields.add("hm_addr");
 		moreFields.add(address);
 		if(getID!=null)
@@ -168,7 +177,6 @@ public class HMXRConnection extends Thread
 			moreFields.add("hm_enum");
 			moreFields.add(dpi.enumValues[((Integer)val).intValue()]);
 		}
-
 		MQTTHandler.publish(topic+"/"+dpi.name, val, retain, moreFields.toArray(new String[moreFields.size()]));
 	}
 
@@ -206,8 +214,7 @@ public class HMXRConnection extends Thread
 		}
 		else
 			topic=di.name;
-
-		publish(topic+"/"+datapoint, dpi, val, retain, di.address, null);
+		publish(topic, dpi, val, retain, di.address, null);
 	}
 
 	static private Executor longRunningRequestDispatcher=Executors.newCachedThreadPool();
@@ -313,10 +320,6 @@ public class HMXRConnection extends Thread
 			if(paramSets.contains("VALUES"))
 			{
 				di.values=getParamsetDescription(di.address, "VALUES");
-				for(String dp:di.values.keySet())
-				{
-					reportValueUsage(di.address,dp,Integer.valueOf(1));
-				}
 			}
 			if(paramSets.contains("MASTER"))
 			{
@@ -387,12 +390,20 @@ public class HMXRConnection extends Thread
 		return res;
 	}
 
-	void reportValueUsage(String address,String datapoint,Integer use) throws IOException, ParseException
+	void reportValueUsage(DeviceInfo di,String datapoint,boolean use)
 	{
 		HMXRMsg m=new HMXRMsg("reportValueUsage");
-		m.addArg(address);
+		m.addArg(di.address);
 		m.addArg(datapoint);
-		m.addArg(use);
-		sendRequest(m);
+		m.addArg(Integer.valueOf(use?1:0));
+		try
+		{
+			sendRequest(m);
+		}
+		catch(IOException | ParseException e)
+		{
+			L.log(Level.WARNING,"Error when reportValueUsage "+use+" on "+di,e);
+		}
 	}
+
 }

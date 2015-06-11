@@ -91,6 +91,47 @@ public class MQTTHandler
 		}
 	}
 
+	void processBind(String topic,boolean active)
+	{
+		int slashIx=topic.lastIndexOf('/');
+		if(slashIx>=0)
+		{
+			String datapoint=topic.substring(slashIx+1,topic.length());
+			String address=topic.substring(0,slashIx);
+
+			DeviceInfo di=DeviceInfo.getByName(address);
+			if(di==null)
+				di=DeviceInfo.getByAddress(address);
+			if(di==null)
+			{
+				L.warning("Got bind/unbind to unknown name/address "+address+", ignoring");
+				return;
+			}
+			L.info("Sending reportValueUsage="+active+" to "+di.address+"/"+datapoint);
+			HM.reportValueUsage(di,datapoint,active);
+		}
+	}
+
+	void processCommand(String command,MqttMessage msg)
+	{
+		String params=null;
+		int bix=command.indexOf('/');
+		if(bix>=0)
+		{
+			command.substring(0,bix);
+			params=command.substring(bix+1);
+		}
+		switch(command)
+		{
+			case "bind":
+				processBind(params,true);
+				break;
+			case "unbind":
+				processBind(params,false);
+				break;
+		}
+	}
+
 	void processMessage(String topic,MqttMessage msg)
 	{
 		topic=topic.substring(topicPrefix.length(),topic.length());
@@ -98,6 +139,8 @@ public class MQTTHandler
 			processSetGet(topic.substring(4),msg,true);
 		else if(topic.startsWith("get/"))
 			processSetGet(topic.substring(4),msg,false);
+		else if(topic.startsWith("command/"))
+			processCommand(topic.substring(8),msg);
 	}
 
 	private void doConnect()
@@ -111,11 +154,12 @@ public class MQTTHandler
 		{
 			mqttc.connect(copts);
 			mqttc.publish(topicPrefix+"connected", "2".getBytes(), 1, true);
-			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"(set|get)/#");
+			L.info("Successfully connected to broker, subscribing to "+topicPrefix+"(set|get|command)/#");
 			try
 			{
 				mqttc.subscribe(topicPrefix+"set/#",1);
 				mqttc.subscribe(topicPrefix+"get/#",1);
+				mqttc.subscribe(topicPrefix+"command/#",1);
 				shouldBeConnected=true;
 			}
 			catch(MqttException mqe)

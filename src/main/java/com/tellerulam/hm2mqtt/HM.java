@@ -160,17 +160,15 @@ public class HM
 		c.getValue(di,topic,datapoint,value);
 	}
 
-	/*
-	public static Map<String, HMValueTypes> obtainValueTypes(String address, String ifid) throws IOException, ParseException
+	public static void reportValueUsage(DeviceInfo di, String datapoint, boolean active)
 	{
-		HMXRConnection c=instance.connections.get(ifid);
+		HMXRConnection c=instance.connections.get(di.ifid);
 		if(c==null)
 		{
-			instance.L.warning("Unable to find a HM connection for "+ifid);
-			return null;
+			instance.L.warning("Unable to find a HM connection for device "+di);
+			return;
 		}
-		return c.getParamsetDescription(address,"VALUES");
+		c.reportValueUsage(di,datapoint,active);
 	}
-	*/
 
 }
