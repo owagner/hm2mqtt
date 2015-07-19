@@ -3,3 +3,4 @@
 .gradle/
 build/
 hm2mqtt.devcache
+/bin/

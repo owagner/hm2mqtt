@@ -83,7 +83,8 @@ status messages. However, there is no bidirectional communication in that case -
 server does, for any reason (like RF interference), not receive a status message, the remote
 device will not resend it. This particular behavior is often not well understood.
 
-hm2mqtt will not automatically register itself as a user of a datapoint. You can do this manually by publishing to the bind/unbind command, or e.g. using https://github.com/hobbyquaker/homematic-manager
+hm2mqtt will not automatically register itself as a user of a datapoint. You can do this manually by 
+publishing to the bind/unbind command, or e.g. using https://github.com/hobbyquaker/homematic-manager
 
 
 MQTT Message format
@@ -182,24 +183,34 @@ See also
 
 Changelog
 ---------
+* 0.13 - 2015/07/19 - owagner
+  - updated to eclipse-paho 1.0.2 and minimal-json 0.9.2
+  - ignore intermediate syslog I/O errors
+  
 * 0.12 - 2015/06/11 - owagner
   - generate "ts" and "lc" timestamp fields in published messages
   - no longer automatically register with reportValueUsage
   - add a command channel and bind/unbind commands as an reportValueUsage interface
   - new option "hm.bindaddress"
+
 * 0.11 - 2015/03/14 - owagner
   - include "hm_unit" and "hm_enum" in published messages, when applicable
+
 * 0.10 - 2015/03/09 - owagner
   - do not call InetAddress.getLocalHost() when a local host is specified via hm.localhost, as this triggers
     an exception on the CCU2
+
 * 0.9 - 2015/03/05 - owagner
   - added syslog handler, which is active by default. Configuration can be overriden using JUL properties.
   - added /get/ function
+
 * 0.8 - 2015/02/21 - owagner
   - now again prefer HM channels over devices when resolving by name. This got broken with the 0.6
     device cache change
+
 * 0.7 - 2015/02/11 - owagner
   - added new option hm.disableReGa to disable all name lookups via ReGa
+
 * 0.6 - 2015/01/31 - owagner
   - completely reworked internal device management. Now properly implements the 
     listDevices/newDevices/deleteDevices contract recommended by HM's XML-RPC API, and will store local
@@ -211,10 +222,12 @@ Changelog
     When a ReGa fetch worked once (i.e. a ReGa is known to be present), failed names will always be
     published with the retain flag set to false, to avoid the unresolved names ending up in the
     MQTT broker's persistent storage
+
 * 0.5 - 2015/01/25 - owagner
   - adapted to new mqtt-smarthome topic hierarchies: /status/ for reports, /set/ for setting values
   - prefix/connected is now an enum as suggested by new mqtt-smarthome spec
   - use QoS 0 for published status reports
+
 * 0.4 - 2015/01/18 - owagner
   - do proper type handling in outgoing requests, as the previous always-string approach failed with
     boolean datapoints. Will now cache a type per datapoint. Cache is filled on incoming messages.
@@ -224,9 +237,11 @@ Changelog
     are set to not retain, all others are set to retain. When incoming messages are learned, it is not
     possible to tell from the datapoint whether they are ACTIONs or BOOLs -- in that case, the
     decision is still made based on the "PRESS_" prefix
+
 * 0.3 - 2015/01/06 - owagner
   - ensure numeric values are not sent as strings
   - when hm.localhost is specified, do not call InetAddress.getLocalHost(), as this fails when running
     directly on the CCU2 and the configured DNS resolver doesn't known the fixed hostname "homematic-ccu2"
+
 * 0.2 - 2015/01/02 - owagner
   - converted to Gradle build
