@@ -27,6 +27,12 @@ public class HM
 			c.sendInit();
 	}
 
+	private void sendPings()
+	{
+		for(HMXRConnection c:connections.values())
+			c.sendPing();
+	}
+
 	static void dispatchEvent(List<?> parms)
 	{
 		String cbid=parms.get(0).toString();
@@ -111,11 +117,23 @@ public class HM
 			@Override
 			public void run()
 			{
-				if(XMLRPCServer.isIdle())
+				long idle=XMLRPCServer.getIdleTime();
+
+				if(idle>(hmIdleTimeout*2000))
+				{
+					L.info("Not seen a XML-RPC request for over "+hmIdleTimeout*2+"s, re-initing...");
 					sendInits();
+				}
+				else if(idle>(hmIdleTimeout*1000))
+				{
+					L.info("Not seen a XML-RPC request for over "+hmIdleTimeout*2+"s, sending PING");
+					sendPings();
+				}
 			}
-		}, 30*1000,60*1000);
+		}, 30*1000,30*1000);
 	}
+
+	private static final int hmIdleTimeout=Integer.getInteger("hm2mqtt.hm.idleTimeout",120).intValue();
 
 	private void addConnection(String host,int port,String serverurl)
 	{

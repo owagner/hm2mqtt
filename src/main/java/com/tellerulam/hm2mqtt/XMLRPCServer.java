@@ -17,9 +17,10 @@ public class XMLRPCServer implements Runnable
 		ss=new ServerSocket();
 		ss.setReuseAddress(true);
 		String bindaddress=System.getProperty("hm2mqtt.hm.bindaddress");
-		if(bindaddress == null)
+		if(bindaddress==null)
 			ss.bind(null);
-		else{
+		else
+		{
 			String[] parts = bindaddress.split(":");
 			ss.bind(new InetSocketAddress(parts[0], Integer.parseInt(parts[1])));
 		}
@@ -175,15 +176,8 @@ public class XMLRPCServer implements Runnable
 		}
 	}
 
-	private static final int hmIdleTimeout=Integer.getInteger("hm2mqtt.hm.idleTimeout",300).intValue();
-
-	public static boolean isIdle()
+	static long getIdleTime()
 	{
-		if(System.currentTimeMillis() - lastRequest > hmIdleTimeout*1000)
-		{
-			L.info("Not seen a XML-RPC request for over "+hmIdleTimeout+"s, re-initing...");
-			return true;
-		}
-		return false;
+		return System.currentTimeMillis() - lastRequest;
 	}
 }

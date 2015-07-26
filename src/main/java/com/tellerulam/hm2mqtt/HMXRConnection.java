@@ -190,6 +190,12 @@ public class HMXRConnection extends Thread
 
 		String topic;
 
+		if("CENTRAL".equals(address))
+		{
+			// We got a ping reply
+			return;
+		}
+
 		DeviceInfo di=DeviceInfo.getByAddress(address);
 		if(di==null)
 		{
@@ -403,6 +409,21 @@ public class HMXRConnection extends Thread
 		catch(IOException | ParseException e)
 		{
 			L.log(Level.WARNING,"Error when reportValueUsage "+use+" on "+di,e);
+		}
+	}
+
+
+	void sendPing()
+	{
+		HMXRMsg m=new HMXRMsg("ping");
+		m.addArg("hmq2mqtt");
+		try
+		{
+			sendRequest(m);
+		}
+		catch(IOException | ParseException e)
+		{
+			L.log(Level.WARNING,"Error when sending ping",e);
 		}
 	}
 
