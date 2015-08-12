@@ -189,6 +189,10 @@ See also
 
 Changelog
 ---------
+* 0.16 - 2015/08/12 - owagner
+  - retry a xml-rpc request at most once (after a 10s grace period). Previously, would
+    retry requests indefinitely with a 30s delay, which defeated the ping mechanism
+
 * 0.15 - 2015/07/26 - owagner
   - accept PING reply events (events with address "CENTRAL"), and use "ping" calls as a first-step
     measure in case of idle timeouts. Re-Init will still be sent after twice the specified timeout value.

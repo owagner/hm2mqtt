@@ -117,13 +117,13 @@ public class HMXRConnection extends Thread
 			}
 			s=null;
 
-			if(!retry)
+			if(retry)
 				throw ioe; // Just rethrow
 
 			L.log(Level.WARNING,"Error during transaction handling",ioe);
 			try
 			{
-				sleep(30000);
+				sleep(10000);
 			}
 			catch(InterruptedException ie)
 			{
