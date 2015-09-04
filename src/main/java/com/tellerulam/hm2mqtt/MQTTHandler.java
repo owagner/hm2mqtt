@@ -239,7 +239,7 @@ public class MQTTHandler
 		{
 			String fullTopic=topicPrefix+"status/"+name;
 			mqttc.publish(fullTopic, msg);
-			L.info("Published "+txtmsg+" to "+fullTopic+(retain?" (R)":""));
+			L.finer("Published "+txtmsg+" to "+fullTopic+(retain?" (R)":""));
 		}
 		catch(MqttException e)
 		{
