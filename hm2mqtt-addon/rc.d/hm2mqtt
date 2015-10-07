@@ -26,7 +26,7 @@ info() {
     echo "Version: 0.10"
     echo "Operations: uninstall restart"
     echo "Config-Url: /addons/hm2mqtt"
-    echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-ccu2-addon/VERSION"
+    echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-addon/VERSION"
 }
 
 uninstall() {
