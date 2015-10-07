@@ -4,8 +4,17 @@ ADDON_DIR=/usr/local/addons/hm2mqtt
 RCD_DIR=/usr/local/etc/config/rc.d
 CONFIG_DIR=/usr/local/etc/config
 
-if [ "`mount | grep ubi1:user | grep /usr/local | wc -l`" -eq 0 ]; then
-	mount -t ubifs ubi1:user /usr/local
+if [ "$1" = "" ]; then
+  echo "CCU1 not supported"
+  exit
+elif [ "$1" = "CCU2" ]; then
+  echo "CCU2"
+  if [ "`mount | grep ubi1:user | grep /usr/local | wc -l`" -eq 0 ]; then
+    mount -t ubifs ubi1:user /usr/local
+  fi
+elif [ "$1" == "HM-RASPBERRYMATIC" ]; then
+  echo "HM-RASPBERRYMATIC"
+  mount /usr/local
 fi
 
 mkdir -p $ADDON_DIR
