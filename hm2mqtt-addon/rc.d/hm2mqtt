@@ -10,7 +10,12 @@ stop() {
 start() {
     echo "Starting hm2mqtt"
     logger -t homematic -p user.info "starting hm2mqtt"
-    start-stop-daemon -S -q -b -m -p /var/run/hm2mqtt.pid --exec /opt/ejre1.7.0_10/bin/java -- -Xmx32m -jar /usr/local/addons/hm2mqtt/hm2mqtt.jar `cat /usr/local/addons/hm2mqtt/options`
+    if [ -x "/opt/jre/bin/java" ]; then
+      JAVA_BIN=/opt/jre/bin/java
+    else
+      JAVA_BIN=/opt/ejre1.7.0_10/bin/java
+    fi
+    start-stop-daemon -S -q -b -m -p /var/run/hm2mqtt.pid --exec ${JAVA_BIN} -- -Xmx32m -jar /usr/local/addons/hm2mqtt/hm2mqtt.jar `cat /usr/local/addons/hm2mqtt/options`
     echo "OK"
 }
 
@@ -21,7 +26,7 @@ info() {
     echo "Version: 0.10"
     echo "Operations: uninstall restart"
     echo "Config-Url: /addons/hm2mqtt"
-    echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-ccu2-addon/VERSION"
+    echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-addon/VERSION"
 }
 
 uninstall() {

@@ -36,15 +36,15 @@ jar {
 
 task addon(dependsOn: 'jar', type: Tar) {
 	compression = Compression.GZIP
-	archiveName 'hm2mqtt-ccu2-addon.tar.gz'
+	archiveName 'hm2mqtt-addon.tar.gz'
 	into('addon') {
-		from 'hm2mqtt-ccu2-addon/addon', 'build/libs/hm2mqtt.jar'
+		from 'hm2mqtt-addon/addon', 'build/libs/hm2mqtt.jar'
 	}
 	into('rc.d') {
-		from 'hm2mqtt-ccu2-addon/rc.d'	
+		from 'hm2mqtt-addon/rc.d'
 	}
 	into('') {
-		from 'hm2mqtt-ccu2-addon/update_script', 'hm2mqtt-ccu2-addon/update_addon', 'hm2mqtt-ccu2-addon/hm2mqtt_addon.cfg'
+		from 'hm2mqtt-addon/update_script', 'hm2mqtt-addon/update_addon', 'hm2mqtt-addon/hm2mqtt_addon.cfg'
 	}
 }
 
