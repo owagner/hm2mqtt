@@ -44,7 +44,7 @@ task addon(dependsOn: 'jar', type: Tar) {
 		from 'hm2mqtt-addon/rc.d'
 	}
 	into('') {
-		from 'hm2mqtt-addon/update_script', 'hm2mqtt-addon/update_addon', 'hm2mqtt-addon/hm2mqtt_addon.cfg'
+		from 'hm2mqtt-addon/update_script', 'hm2mqtt-addon/hm2mqtt_addon.cfg', 'hm2mqtt-addon/VERSION'
 	}
 }
 
