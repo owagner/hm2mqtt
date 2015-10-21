@@ -20,13 +20,14 @@ start() {
 }
 
 info() {
-    echo "Info: <b>hm2mqtt</b>"
-    echo "Info: <a href="https://github.com/owagner/hm2mqtt" target="_blank">Readme</a>"
+    VER=`cat /usr/local/addons/hm2mqtt/VERSION`
+    echo "Info: <b>hm2mqtt CCU Addon</b><br>"
+    echo "Info: <a href="https://github.com/owagner/hm2mqtt" target="_blank">https://github.com/owagner/hm2mqtt</a>"
     echo "Name: hm2mqtt"
-    echo "Version: 0.10"
+    echo "Version: $VER"
     echo "Operations: uninstall restart"
     echo "Config-Url: /addons/hm2mqtt"
-    echo "Update: http://raw.githubusercontent.com/owagner/hm2mqtt/master/hm2mqtt-addon/VERSION"
+    echo "Update: /addons/hm2mqtt/update-check.cgi"
 }
 
 uninstall() {
