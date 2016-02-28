@@ -243,7 +243,7 @@ public class HMXRConnection extends Thread
 					{
 						// We don't want to retain ACTION one-shot keypress notifications
 						DatapointInfo dpi=di.getValueDatapointInfo(datapoint);
-						publish(topic+"/"+datapoint, dpi, response.getData().get(0), !dpi.isAction(), di.address, value);
+						publish(topic, dpi, response.getData().get(0), !dpi.isAction(), di.address, value);
 					}
 				}
 				catch(IOException | ParseException e)

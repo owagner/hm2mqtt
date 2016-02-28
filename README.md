@@ -1,7 +1,7 @@
 hm2mqtt
 =======
 
-  Written and (C) 2015 Oliver Wagner <owagner@tellerulam.com> 
+  Written and (C) 2015-16 Oliver Wagner <owagner@tellerulam.com> 
   
   Provided under the terms of the MIT license.
 
@@ -189,6 +189,10 @@ See also
 
 Changelog
 ---------
+* 0.17 - 2016/02/28 - owagner
+  - fix topic of published message in response to /get/ requests; previously, the datapoint
+    name was bogusly attached twice
+
 * 0.16 - 2015/08/12 - owagner
   - retry a xml-rpc request at most once (after a 10s grace period). Previously, would
     retry requests indefinitely with a 30s delay, which defeated the ping mechanism
