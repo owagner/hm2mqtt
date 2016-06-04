@@ -83,8 +83,7 @@ status messages. However, there is no bidirectional communication in that case -
 server does, for any reason (like RF interference), not receive a status message, the remote
 device will not resend it. This particular behavior is often not well understood.
 
-hm2mqtt will not automatically register itself as a user of a datapoint. You can do this manually by 
-publishing to the bind/unbind command, or e.g. using https://github.com/hobbyquaker/homematic-manager
+hm2mqtt will not automatically register itself as a user of a datapoint. You can do this manually by publishing to the bind/unbind command, or e.g. using https://github.com/hobbyquaker/homematic-manager
 
 
 MQTT Message format
@@ -137,6 +136,11 @@ Examples:
 - mqtt.topic
 
   The topic prefix used for publishing and subscribing. Defaults to "hm/".
+^
+- mqtt.username
+- mqtt.password
+
+  Optional, username and password for authentication against the broker.
 
 - hm.host
 
@@ -189,6 +193,9 @@ See also
 
 Changelog
 ---------
+* 0.18 - 2016/06/04 - owagner
+  - support MQTT authentication. Implements #10.
+
 * 0.17 - 2016/02/28 - owagner
   - fix topic of published message in response to /get/ requests; previously, the datapoint
     name was bogusly attached twice

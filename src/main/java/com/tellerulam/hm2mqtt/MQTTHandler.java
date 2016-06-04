@@ -150,6 +150,14 @@ public class MQTTHandler
 		MqttConnectOptions copts=new MqttConnectOptions();
 		copts.setWill(topicPrefix+"connected", "0".getBytes(), 2, true);
 		copts.setCleanSession(true);
+		String username=System.getProperty("hm2mqtt.mqtt.username");
+		String password=System.getProperty("hm2mqtt.mqtt.password");
+		if(username!=null)
+		{
+			copts.setUserName(username);
+			copts.setPassword(password.toCharArray());
+			L.fine("Using MQTT username "+username);
+		}
 		try
 		{
 			mqttc.connect(copts);
