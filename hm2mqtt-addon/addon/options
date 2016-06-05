@@ -1,1 +1,1 @@
-hm.localhost=127.0.0.1 mqtt.server=tcp://bananapi:1883 hm.host=127.0.0.1:2001,127.0.0.1:2000
+hm.localhost=127.0.0.1 mqtt.server=tcp://bananapi:1883 hm.host=127.0.0.1:2001,127.0.0.1:2000 hm.clientid=hm2mqtt
