@@ -1,9 +1,10 @@
 package com.tellerulam.hm2mqtt;
 
+import java.io.*;
 import java.math.*;
-
 import java.nio.charset.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.*;
 
 import org.eclipse.paho.client.mqttv3.*;
@@ -112,7 +113,45 @@ public class MQTTHandler
 		}
 	}
 
-	void processCommand(String command,MqttMessage msg)
+	private final Executor responseExecutor=Executors.newSingleThreadExecutor();
+
+	void processList(String params)
+	{
+		Collection<Map.Entry<String,DeviceInfo>> devs=DeviceInfo.matchByPattern(params);
+		JsonArray array=new JsonArray();
+		for(Map.Entry<String,DeviceInfo> de:devs)
+		{
+			JsonObject jso=new JsonObject();
+
+			jso.add("name", de.getKey());
+			jso.add("addr", de.getValue().address);
+			jso.add("version", de.getValue().version);
+			jso.add("ifid", de.getValue().ifid);
+			array.add(jso);
+		}
+		final MqttMessage msg=new MqttMessage(array.toString().getBytes(StandardCharsets.UTF_8));
+		msg.setQos(0);
+		msg.setRetained(false);
+		final String fullTopic=topicPrefix+"result/list";
+		System.out.println("C "+fullTopic);
+		responseExecutor.execute(new Runnable(){
+			@Override
+			public void run()
+			{
+				try
+				{
+					mqttc.publish(fullTopic, msg);
+				}
+				catch(MqttException e)
+				{
+					L.log(Level.WARNING,"Error when publishing message "+msg,e);
+				}
+			}
+		});
+	}
+
+
+	void processCommand(String command,MqttMessage msg) throws UnsupportedEncodingException
 	{
 		String params=null;
 		int bix=command.indexOf('/');
@@ -121,6 +160,7 @@ public class MQTTHandler
 			command.substring(0,bix);
 			params=command.substring(bix+1);
 		}
+		L.info("Processing command "+command+" with params "+params);
 		switch(command)
 		{
 			case "bind":
@@ -129,10 +169,15 @@ public class MQTTHandler
 			case "unbind":
 				processBind(params,false);
 				break;
+			case "list":
+				processList(new String(msg.getPayload(),"UTF-8"));
+				break;
+			default:
+				L.warning("Unknown command "+command);
 		}
 	}
 
-	void processMessage(String topic,MqttMessage msg)
+	void processMessage(String topic,MqttMessage msg) throws UnsupportedEncodingException
 	{
 		topic=topic.substring(topicPrefix.length(),topic.length());
 		if(topic.startsWith("set/"))

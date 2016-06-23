@@ -3,6 +3,7 @@ package com.tellerulam.hm2mqtt;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
+import java.util.regex.*;
 
 public class DeviceInfo implements Serializable
 {
@@ -57,6 +58,23 @@ public class DeviceInfo implements Serializable
 		{
 			return devicesByName.get(name);
 		}
+	}
+
+	public static Collection<Map.Entry<String,DeviceInfo>> matchByPattern(String pattern)
+	{
+		Collection<Map.Entry<String,DeviceInfo>> res=new ArrayList<>();
+		Pattern p=Pattern.compile(pattern);
+		synchronized(devicesByName)
+		{
+			for(Map.Entry<String, DeviceInfo> de:devicesByName.entrySet())
+			{
+				//System.out.println("pattern="+pattern+" "+de.getKey());
+				Matcher m=p.matcher(de.getKey());
+				if(m.matches())
+					res.add(de);
+			}
+		}
+		return res;
 	}
 
 	public static DeviceInfo addNewDevice(String address, int version, String cbid)

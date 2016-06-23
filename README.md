@@ -193,6 +193,9 @@ See also
 
 Changelog
 ---------
+* 0.19 - 2016/06/23 - owagner
+  - add command/list to get a channel list. Payload is a Java RegEx pattern, result is returned in "<prefix>/result/list"
+
 * 0.18 - 2016/06/04 - owagner
   - support MQTT authentication. Implements #10.
 
